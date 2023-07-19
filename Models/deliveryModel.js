@@ -13,7 +13,6 @@ async function createDelivery(userData) {
       message: "Something went wrong, Please try again",
     };
   } catch (err) {
-    console.log(err.message);
     return { success: false, message: err.message };
   }
 }

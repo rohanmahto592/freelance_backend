@@ -1,48 +1,34 @@
 const users=require("../Schema/credentialSchema")
 const additem=require("../Schema/Item")
-const mongoose=require("mongoose");
 const Stock=require("../Schema/Stock")
-async function getAllUsers()
+const College=require("../Schema/collegeSchema")
+async function getAllUsers(isVerified)
 {
+  
+   if(isVerified=='true')
+   {
     try{
-    const response= await users.aggregate([
-        {
-          $match: {
-            isVerified: { $in: [true, false] }
-          }
-        },
-        {
-          $group: {
-            _id: "$isVerified",
-            users: {
-              $push: {
-                firstName: "$firstName",
-                lastName: "$lastName",
-                email: "$email",
-                userType: "$userType",
-                _id:'$_id',
-              }
-            },
-            count: { $sum: 1 }
-          }
-        },
-        {
-          $project: {
-            _id: 0,
-            isVerified: "$_id",
-            users: 1,
-            count: 1
-          }
-        }
-      ]);
-    return {success:true,message:response}
+      const response=await users.find({isVerified:true});
+      return {success:true,message:response}
     }catch(err)
     {
-        return {success:false,message:'internal server error'}
+      return {success:false,message:"Failed to fetch the Users,try again after sometime"}
     }
+   }
+   else
+   {
+    try{
+      const response=await users.find({isVerified:false});
+      return {success:true,message:response}
+    }catch(err)
+    {
+      return {success:false,message:"Failed to fetch the Users,try again after sometime"}
+    }
+   }
 }
 async function verifySelectedUsers(userIds)
 {
+  console.log("heelo")
     try{
         await users.updateMany(
             { _id: { $in: userIds } }, // filter by user IDs in the given array
@@ -169,4 +155,26 @@ async function addStockItem(stockData){
     return {success:false,message:'internal server error'};
   }
 }
-module.exports={getAllUsers,verifySelectedUsers,deleteSelectedUser,addItems,fetchItems,updatecartItem,getItemListNames,addStockItem};
+async function addColleges(college)
+{
+  try{
+    const response= new College(college);
+     await  response.save()
+      return { success: true, message:"college added successfully"};
+    }
+  catch(err)
+  {
+    return {success:false,message:'internal server error'};
+  }
+}
+async function FetchColleges(){
+  try{
+    const response= await College.find();
+      return { success: true, message:response};
+    }
+  catch(err)
+  {
+    return {success:false,message:'internal server error'};
+  }
+}
+module.exports={getAllUsers,verifySelectedUsers,deleteSelectedUser,addItems,fetchItems,updatecartItem,getItemListNames,addStockItem,addColleges,FetchColleges};

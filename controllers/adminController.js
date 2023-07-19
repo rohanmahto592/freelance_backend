@@ -6,11 +6,14 @@ const {
   fetchItems,
   updatecartItem,
   getItemListNames,
-  addStockItem
+  addStockItem,
+  addColleges,
+  FetchColleges
 } = require("../Models/adminModel");
 
 async function allUsers(req, res) {
-  const response = await getAllUsers();
+  const isVerified=req.query.verified;
+  const response = await getAllUsers(isVerified);
   res.send(response);
 }
 async function verifyUsers(req, res) {
@@ -48,4 +51,13 @@ async function addStock(req,res){
   const response=await addStockItem(stockData);
   res.send(response);
 }
-module.exports = { allUsers, verifyUsers, deleteUser, addItem,getItems,updateCartItem ,getItemNames,addStock};
+async function addCollege(req,res){
+  const college=req.body;
+  const response=await addColleges(college)
+  res.send(response);
+}
+async function fetchColleges(req,res){
+  const response=await FetchColleges();
+  res.send(response);
+}
+module.exports = { allUsers, verifyUsers, deleteUser, addItem,getItems,updateCartItem ,getItemNames,addStock,addCollege,fetchColleges};
