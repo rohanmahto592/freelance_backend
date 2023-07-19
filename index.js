@@ -1,0 +1,27 @@
+const express = require("express");
+const app = express();
+require("dotenv").config();
+const mongoDB = require("./Db/db");
+const cors = require("cors");
+const option = {
+  exposedHeaders: "Authorization",
+};
+
+const userCredentialRoute = require("./Routes/userCredentialRoutes");
+const excelRoute = require("./Routes/excelRoutes");
+const deliveryRoute = require("./Routes/deliveryRoutes");
+const feedbackRoute = require("./Routes/feedbackRoutes");
+
+const adminRoute = require("./Routes/adminRoutes");
+app.use(express.json());
+app.use(cors(option));
+app.use("/api/v1", userCredentialRoute);
+app.use("/api/v1", excelRoute);
+app.use("/api/v1", deliveryRoute);
+app.use("/api/v1", feedbackRoute);
+app.use("/api/v1", adminRoute);
+const PORT = process.env.PORT;
+app.listen(PORT, async () => {
+  console.log(`listening on port ${PORT}`);
+  await mongoDB();
+});
