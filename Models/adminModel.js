@@ -138,9 +138,9 @@ async function addStockItem(stockData) {
     return { success: false, message: "internal server error" };
   }
 }
-async function addColleges(college) {
+async function addColleges(collegeInfo) {
   try {
-    const response = new College(college);
+    const response = new College(collegeInfo);
     await response.save();
     return { success: true, message: "college added successfully" };
   } catch (err) {

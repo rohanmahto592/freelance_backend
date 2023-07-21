@@ -56,8 +56,8 @@ async function addStock(req, res) {
   res.send(response);
 }
 async function addCollege(req, res) {
-  const college = req.body;
-  const response = await addColleges(college);
+  const collegeInfo = req.body;
+  const response = await addColleges(collegeInfo);
   res.send(response);
 }
 async function fetchColleges(req, res) {

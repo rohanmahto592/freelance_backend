@@ -4,6 +4,10 @@ const collegeSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  Address:{
+    type:String,
+    required:true
+  }
   
 });
 
