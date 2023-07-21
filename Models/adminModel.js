@@ -181,7 +181,15 @@ async function fetchExcelHeaders(orderType) {
     return { success: false, message: "internal server error" };
   }
 }
-
+async function deleteColleById(id){
+  try{
+    const response=await College.findByIdAndDelete(id);
+    return { success: true, message: "college deleted successfully" };
+  }catch(err)
+  {
+    return { success: false, message: "failed to delete the college,try again after sometime" };
+  }
+}
 module.exports = {
   getAllUsers,
   verifySelectedUsers,
@@ -196,4 +204,5 @@ module.exports = {
   AddExcelHeader,
   deleteExcelHeader,
   fetchExcelHeaders,
+  deleteColleById
 };
