@@ -28,7 +28,7 @@ router.put("/admin/updateItem", validateUser, updateCartItem);
 router.get("/admin/getItemNames", validateUser, getItemNames);
 router.post("/admin/addStock", validateUser, addStock);
 router.post("/admin/addCollege", validateUser, addCollege);
-router.get("/admin/getColleges", validateUser, fetchColleges);
+router.get("/admin/getColleges", fetchColleges);
 router.post("/admin/addExcelHeader", validateUser, addExcelHeaderController);
 router.get("/admin/getExcelHeader", validateUser, fetchExcelHeadersController);
 router.post(
