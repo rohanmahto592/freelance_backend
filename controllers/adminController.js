@@ -8,11 +8,14 @@ const {
   getItemListNames,
   addStockItem,
   addColleges,
-  FetchColleges
+  FetchColleges,
+  fetchExcelHeaders,
+  AddExcelHeader,
+  deleteExcelHeader,
 } = require("../Models/adminModel");
 
 async function allUsers(req, res) {
-  const isVerified=req.query.verified;
+  const isVerified = req.query.verified;
   const response = await getAllUsers(isVerified);
   res.send(response);
 }
@@ -33,31 +36,63 @@ async function addItem(req, res) {
   const response = await addItems({ ...formData, image });
   res.send(response);
 }
-async function getItems(req,res){
-   const response=await fetchItems();
-   res.send(response);
+async function getItems(req, res) {
+  const response = await fetchItems();
+  res.send(response);
 }
-async function updateCartItem(req,res){
+async function updateCartItem(req, res) {
   const Data = req.body;
   const response = await updatecartItem(Data);
   res.send(response);
 }
-async function getItemNames(req,res){
-  const response=await getItemListNames();
+async function getItemNames(req, res) {
+  const response = await getItemListNames();
   res.send(response);
 }
-async function addStock(req,res){
-  const stockData=req.body;
-  const response=await addStockItem(stockData);
+async function addStock(req, res) {
+  const stockData = req.body;
+  const response = await addStockItem(stockData);
   res.send(response);
 }
-async function addCollege(req,res){
-  const college=req.body;
-  const response=await addColleges(college)
+async function addCollege(req, res) {
+  const college = req.body;
+  const response = await addColleges(college);
   res.send(response);
 }
-async function fetchColleges(req,res){
-  const response=await FetchColleges();
+async function fetchColleges(req, res) {
+  const response = await FetchColleges();
   res.send(response);
 }
-module.exports = { allUsers, verifyUsers, deleteUser, addItem,getItems,updateCartItem ,getItemNames,addStock,addCollege,fetchColleges};
+
+async function deleteExcelHeaderController(req, res) {
+  const { id } = req.body;
+  const response = await deleteExcelHeader(id);
+  res.send(response);
+}
+
+async function addExcelHeaderController(req, res) {
+  const header = req.body;
+  const response = await AddExcelHeader(header);
+  res.send(response);
+}
+
+async function fetchExcelHeadersController(req, res) {
+  const { orderType } = req.query;
+  const response = await fetchExcelHeaders(orderType);
+  res.send(response);
+}
+module.exports = {
+  allUsers,
+  verifyUsers,
+  deleteUser,
+  addItem,
+  getItems,
+  updateCartItem,
+  getItemNames,
+  addStock,
+  addCollege,
+  fetchColleges,
+  deleteExcelHeaderController,
+  fetchExcelHeadersController,
+  addExcelHeaderController,
+};
