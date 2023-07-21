@@ -83,6 +83,7 @@ async function fetchItems() {
 }
 async function updatecartItem(data) {
   const { _id, quantity } = data;
+  console.log(quantity);
   try {
     const item = await Stock.findOne(_id);
     if (item) {
@@ -116,8 +117,10 @@ async function addStockItem(stockData) {
       itemRef: itemRef,
       university: university,
     });
+    console.log(quantity);
+    console.log(item);
     if (item) {
-      item.quantity = parseInt(item.quantity) + parseInt(quantity);
+      item.quantity = (parseInt(item.quantity?item.quantity:0) + parseInt(quantity)).toString();
       await item.save();
       return { success: true, message: "Stock updated successfully" };
     }
