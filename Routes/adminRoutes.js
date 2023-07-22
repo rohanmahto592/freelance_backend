@@ -14,7 +14,8 @@ const {
   addExcelHeaderController,
   fetchExcelHeadersController,
   deleteExcelHeaderController,
-  deleteCollege
+  deleteCollege,
+  deleteCurrentItem
 } = require("../controllers/adminController.js");
 const router = express.Router();
 const multer = require("multer");
@@ -37,4 +38,5 @@ router.post(
   deleteExcelHeaderController
 );
 router.delete("/admin/deletecollege",validateUser,deleteCollege);
+router.delete("/admin/deleteCurrentItem",validateUser,deleteCurrentItem)
 module.exports = router;

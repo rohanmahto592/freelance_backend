@@ -12,7 +12,8 @@ const {
   fetchExcelHeaders,
   AddExcelHeader,
   deleteExcelHeader,
-  deleteColleById
+  deleteColleById,
+  deleteItem
 } = require("../Models/adminModel");
 
 async function allUsers(req, res) {
@@ -87,6 +88,11 @@ async function deleteCollege(req,res){
   const response=await deleteColleById(id);
   res.send(response);
 }
+async function deleteCurrentItem(req,res){
+  const {id}=req.query
+  const response=await deleteItem(id);
+  res.send(response);
+}
 module.exports = {
   deleteCollege,
   allUsers,
@@ -102,4 +108,5 @@ module.exports = {
   deleteExcelHeaderController,
   fetchExcelHeadersController,
   addExcelHeaderController,
+  deleteCurrentItem
 };

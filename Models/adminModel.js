@@ -193,6 +193,15 @@ async function deleteColleById(id){
     return { success: false, message: "failed to delete the college,try again after sometime" };
   }
 }
+async function deleteItem(id){
+  try{
+    const response=await Stock.findByIdAndDelete(id);
+    return { success: true, message: "Item deleted successfully" };
+  }catch(err)
+  {
+    return { success: false, message: "failed to delete the item,try again after sometime" };
+  }
+}
 module.exports = {
   getAllUsers,
   verifySelectedUsers,
@@ -207,5 +216,6 @@ module.exports = {
   AddExcelHeader,
   deleteExcelHeader,
   fetchExcelHeaders,
-  deleteColleById
+  deleteColleById,
+  deleteItem
 };
