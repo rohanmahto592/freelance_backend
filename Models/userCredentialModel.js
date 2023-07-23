@@ -13,8 +13,7 @@ async function createUser(userData) {
       message: "Something went wrong, Please try again",
     };
   } catch (err) {
-    console.log(err.message);
-    return { success: false, message: err.message };
+    return { success: false, message:"internal server error,try again after sometime" };
   }
 }
 
@@ -26,7 +25,6 @@ async function findUser(email) {
     }
     return { success: true, user };
   } catch(err) {
-    console.log(err.message);
     return { success: false, message: err.message };
   }
 }
