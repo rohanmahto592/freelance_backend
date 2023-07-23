@@ -27,7 +27,6 @@ async function getAllUsers(isVerified) {
   }
 }
 async function verifySelectedUsers(userIds) {
-  console.log("heelo");
   try {
     await users
       .updateMany(
@@ -83,7 +82,6 @@ async function fetchItems() {
 }
 async function updatecartItem(data) {
   const { _id, quantity } = data;
-  console.log(quantity);
   try {
     const item = await Stock.findOne(_id);
     if (item) {
@@ -117,8 +115,6 @@ async function addStockItem(stockData) {
       itemRef: itemRef,
       university: university,
     });
-    console.log(quantity);
-    console.log(item);
     if (item) {
       item.quantity = (parseInt(item.quantity?item.quantity:0) + parseInt(quantity)).toString();
       await item.save();

@@ -34,7 +34,7 @@ async function deleteUser(req, res) {
 async function addItem(req, res) {
   const Image = req?.file?.buffer;
   const formData = JSON.parse(req.body.item);
-  const image = `data:image/jpeg;base64,${Image.toString("base64")}`;
+  const image = Image? `data:image/jpeg;base64,${Image.toString("base64")}`:"";
   const response = await addItems({ ...formData, image });
   res.send(response);
 }
