@@ -3,6 +3,7 @@ const additem = require("../Schema/Item");
 const Stock = require("../Schema/Stock");
 const College = require("../Schema/collegeSchema");
 const ExcelHeader = require("../Schema/excelHeadersSchema");
+const NonServicableCountry=require("../Schema/nonServicableCountires")
 async function getAllUsers(isVerified) {
   if (isVerified == "true") {
     try {
@@ -198,6 +199,27 @@ async function deleteItem(id){
     return { success: false, message: "failed to delete the item,try again after sometime" };
   }
 }
+async function addCountry(country)
+{
+  try{
+    const response= new NonServicableCountry({name:country});
+    await response.save()
+    return { success: true, message: "country added successfully" };
+  }catch(err)
+  {
+    return { success: false, message: "failed to add the country,try again after sometime" };
+  }
+}
+async function getCountry(){
+  try{
+    
+    const response= await NonServicableCountry.find();
+    return { success: true, message: response };
+  }catch(err)
+  {
+    return { success: false, message: "failed to fetch the country,try again after sometime" };
+  }
+}
 module.exports = {
   getAllUsers,
   verifySelectedUsers,
@@ -213,5 +235,7 @@ module.exports = {
   deleteExcelHeader,
   fetchExcelHeaders,
   deleteColleById,
-  deleteItem
+  deleteItem,
+  addCountry,
+  getCountry
 };

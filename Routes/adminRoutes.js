@@ -15,7 +15,9 @@ const {
   fetchExcelHeadersController,
   deleteExcelHeaderController,
   deleteCollege,
-  deleteCurrentItem
+  deleteCurrentItem,
+  addNonServicableCountries,
+  getInvalidCountries
 } = require("../controllers/adminController.js");
 const router = express.Router();
 const multer = require("multer");
@@ -39,4 +41,6 @@ router.post(
 );
 router.delete("/admin/deletecollege",validateUser,deleteCollege);
 router.delete("/admin/deleteCurrentItem",validateUser,deleteCurrentItem)
+router.post("/admin/add/nonServicableCountries",validateUser,addNonServicableCountries);
+router.get("/admin/get/nonServicableCountries",validateUser,getInvalidCountries);
 module.exports = router;

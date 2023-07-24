@@ -13,7 +13,9 @@ const {
   AddExcelHeader,
   deleteExcelHeader,
   deleteColleById,
-  deleteItem
+  deleteItem,
+  addCountry,
+  getCountry
 } = require("../Models/adminModel");
 
 async function allUsers(req, res) {
@@ -93,6 +95,15 @@ async function deleteCurrentItem(req,res){
   const response=await deleteItem(id);
   res.send(response);
 }
+async function addNonServicableCountries(req,res){
+  const {country}=req.body;
+  const response=await addCountry(country);
+  res.send(response);
+}
+async function getInvalidCountries(req,res){
+  const response=await getCountry();
+  res.send(response);
+}
 module.exports = {
   deleteCollege,
   allUsers,
@@ -108,5 +119,7 @@ module.exports = {
   deleteExcelHeaderController,
   fetchExcelHeadersController,
   addExcelHeaderController,
-  deleteCurrentItem
+  deleteCurrentItem,
+  addNonServicableCountries,
+  getInvalidCountries
 };
