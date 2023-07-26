@@ -1,9 +1,9 @@
 const { default: axios } = require("axios");
 const stringSimilarity = require("string-similarity");
-const xlsx = require("xlsx");
 const { findAddress } = require("./locationHelper");
 const { createOrder } = require("../Models/orderModel");
 const { getMandatoryFields } = require("./getMandatoryFields");
+const move_non_sericable = require("./group_non_servicable_shipment");
 function calculateFileSize(file) {
   return file.length;
 }
@@ -57,15 +57,18 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
         row[headerMap["primary phone number"]]
       );
       let validEmail = validateEmail(row[headerMap["email"]]);
-      let validAddress = await validateAddress(
-        row[headerMap["postal code"]],
-        row[headerMap["city"]],
-        row[headerMap["street address 1"]],
-        row[headerMap["street address 2"]],
-        row,
-        headerMap
-      );
-      row["State"] = validAddress.state;
+      let validAddress =
+        row[headerMap["country code"]].toLowerCase() !== "india"
+          ? await validateAddress(
+              row[headerMap["country code"]],
+              row[headerMap["postal code"]],
+              row[headerMap["city"]],
+              row[headerMap["street address 1"]],
+              row[headerMap["street address 2"]],
+              row,
+              headerMap
+            )
+          : { isValid: true };
       if (validEmail && validNumber && validAddress.isValid) {
         const order =
           orderType !== "ADMIT/DEPOSIT"
@@ -93,12 +96,13 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
       return;
     })
   );
-
+  const response=await move_non_sericable(non_servicable);
   return {
     dispatched: dispatched,
     invalid: invalid,
-    non_servicable: non_servicable,
+    non_servicable: response?.non_servicable,
     duplicates,
+    ShipRocket_Delivery:response?.ShipRocket_delivery
   };
 }
 
@@ -124,9 +128,17 @@ function minimumDistance(str1, str2) {
   }
 }
 
-async function computeAddress(city, street1, street2, address, row, headerMap) {
+async function computeAddress(
+  country,
+  city,
+  street1,
+  street2,
+  address,
+  row,
+  headerMap
+) {
   process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
-  const location = await findAddress(city, street1, street2);
+  const location = await findAddress(country, city, street1, street2);
   let { newAddress, success } = location;
   if (success) {
     row[headerMap["country code"]] = newAddress.country;
@@ -139,6 +151,7 @@ async function computeAddress(city, street1, street2, address, row, headerMap) {
 }
 
 async function validateAddress(
+  country,
   pincode,
   city,
   street1,
@@ -150,9 +163,11 @@ async function validateAddress(
   if (
     !pincode ||
     !/^\d+$/.test(pincode.toString()) ||
-    pincode.toString().length < 6
+    pincode?.toString().length < 6
   ) {
     address = await computeAddress(
+      country,
+      pincode,
       city,
       street1,
       street2,
@@ -169,11 +184,11 @@ async function validateAddress(
     let data = await axios.get(
       `https://api.postalpincode.in/pincode/${pincode}`
     );
-
     data = data.data[0];
-
     if (!data["PostOffice"]) {
       address = await computeAddress(
+        country,
+        pincode,
         city,
         street1,
         street2,
@@ -214,6 +229,8 @@ async function validateAddress(
       }
     }
     address = await computeAddress(
+      country,
+      pincode,
       city,
       street1,
       street2,

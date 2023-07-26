@@ -63,11 +63,10 @@ async function processExcellSheet(req, res) {
         docFile,
         req.body
       );
-      // console.log(info);
-      SendExcelSheet(JsonWorkbookData);
+       SendExcelSheet(JsonWorkbookData);
       const userData = generateCredentials(info._id);
 
-      createDelivery(userData);
+      await createDelivery(userData);
     }
 
     res.send({ success: true, message: "ExcelSheet Processed Successfully" });

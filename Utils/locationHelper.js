@@ -1,10 +1,10 @@
 const axios = require("axios");
 const { findLocation, addLocation } = require("../Models/locationModel");
 
-async function findAddress(city, street1, street2) {
+async function findAddress(country,postalCode,city, street1, street2) {
   let location = await findLocation(city);
   if (!location.success) {
-    location = await findLatAndLong(street1 + " " + street2 + " " + city);
+    location = await findLatAndLong(street1 + " " + street2 + " " + city+" "+country+" "+postalCode);
     if (location.success) {
       location.newAddress.city = city;
       await addLocation(location.newAddress);
