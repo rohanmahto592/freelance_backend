@@ -4,7 +4,7 @@ const { findLocation, addLocation } = require("../Models/locationModel");
 async function findAddress(country,postalCode,city, street1, street2) {
   let location = await findLocation(city);
   if (!location.success) {
-    location = await findLatAndLong(street1 + " " + street2 + " " + city+" "+country+" "+postalCode);
+    location = await findLatAndLong(street1?street1:'' + "" + street2?street2:'' + "" + city?city:''+""+country?country:''+" "+postalCode?postalCode:'');
     if (location.success) {
       location.newAddress.city = city;
       await addLocation(location.newAddress);

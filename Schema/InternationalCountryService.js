@@ -18,5 +18,5 @@ const internationalServiceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const internationalService = mongoose.model("internationalService", internationalServiceSchema);
-module.exports = internationalService;
+const internationalCountryService = mongoose.model("internationalCountryService", internationalServiceSchema);
+module.exports = internationalCountryService;

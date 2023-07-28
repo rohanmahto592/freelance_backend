@@ -4,6 +4,7 @@ const Stock = require("../Schema/Stock");
 const College = require("../Schema/collegeSchema");
 const ExcelHeader = require("../Schema/excelHeadersSchema");
 const NonServicableCountry=require("../Schema/nonServicableCountires")
+const internationalCountryService=require("../Schema/InternationalCountryService")
 async function getAllUsers(isVerified) {
   if (isVerified == "true") {
     try {
@@ -220,6 +221,18 @@ async function getCountry(){
     return { success: false, message: "failed to fetch the country,try again after sometime" };
   }
 }
+async function InternationalCountryPrice(data)
+{
+  try{
+    
+    const response= new  internationalCountryService(data);
+    await response.save();
+    return { success: true, message: response };
+  }catch(err)
+  {
+    return { success: false, message: "failed to add international country consignment details,try again after sometime" };
+  }
+}
 module.exports = {
   getAllUsers,
   verifySelectedUsers,
@@ -237,5 +250,6 @@ module.exports = {
   deleteColleById,
   deleteItem,
   addCountry,
-  getCountry
+  getCountry,
+  InternationalCountryPrice
 };

@@ -79,7 +79,6 @@ async function processExcellSheet(req, res) {
 async function getExcelSheet(req, res) {
   try {
     const userId = req.user;
-
     const response = await File.find({
       userRef: new mongoose.Types.ObjectId(userId),
     }).sort({ createdAt: -1 });
@@ -98,7 +97,6 @@ async function deleteExcelFile(req, res) {
     const response = await File.deleteOne({
       _id: new mongoose.Types.ObjectId(userId),
     });
-    console.log(response);
     res.send({ success: true, message: "Deleted successfully" });
   } catch (err) {
     console.log(err);

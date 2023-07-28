@@ -47,6 +47,12 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
   await Promise.all(
     excelJsonData.map(async (row) => {
       if (row[headerMap["country code"]]?.toLowerCase() !== "india") {
+        let address = { isValid: false, state: "Z" };
+       address= await findAddressHepler(  row[headerMap["country code"]],
+        row[headerMap["postal code"]],
+        row[headerMap["city"]],
+        row[headerMap["street address 1"]],
+        row[headerMap["street address 2"]],row,headerMap,address);
         non_servicable.push(row);
         return;
       }
@@ -57,9 +63,7 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
         row[headerMap["primary phone number"]]
       );
       let validEmail = validateEmail(row[headerMap["email"]]);
-      let validAddress =
-        row[headerMap["country code"]].toLowerCase() !== "india"
-          ? await validateAddress(
+      let validAddress =await validateAddress(
               row[headerMap["country code"]],
               row[headerMap["postal code"]],
               row[headerMap["city"]],
@@ -68,13 +72,12 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
               row,
               headerMap
             )
-          : { isValid: true };
+      row["State"]=validAddress.state;
       if (validEmail && validNumber && validAddress.isValid) {
         const order =
           orderType !== "ADMIT/DEPOSIT"
             ? orderType
             : row[headerMap["admissions status"]].toUpperCase();
-        console.log(order);
         const newOrder = await createOrder({
           applicationId: row[headerMap["application: application id"]],
           orderType:
@@ -102,7 +105,8 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
     invalid: invalid,
     non_servicable: response?.non_servicable,
     duplicates,
-    ShipRocket_Delivery:response?.ShipRocket_delivery
+    ShipRocket_Delivery:response?.ShipRocket_delivery,
+    IndianPost_Delivery:response?.IndianPost_delivery
   };
 }
 
@@ -127,9 +131,25 @@ function minimumDistance(str1, str2) {
     return false;
   }
 }
-
+async function findAddressHepler(country,pincode, city, street1, street2,row,headerMap,address)
+{
+  
+  process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
+  const location = await findAddress(country,pincode, city, street1, street2);
+  let { newAddress, success } = location;
+  if(newAddress.country.toLowerCase()===country.toLowerCase() && success)
+  {
+    row[headerMap["country code"]] = newAddress.country;
+    row[headerMap["postal code"]] = newAddress?.postalCode? newAddress.postalCode : pincode;
+    row["State"] = newAddress.state;
+    address.isValid = true;
+    address.state = newAddress.state;
+  }
+  return address;
+}
 async function computeAddress(
   country,
+  pincode,
   city,
   street1,
   street2,
@@ -137,17 +157,8 @@ async function computeAddress(
   row,
   headerMap
 ) {
-  process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
-  const location = await findAddress(country, city, street1, street2);
-  let { newAddress, success } = location;
-  if (success) {
-    row[headerMap["country code"]] = newAddress.country;
-    row[headerMap["postal code"]] = newAddress.postalCode;
-    row["State"] = newAddress.state;
-    address.isValid = true;
-    address.state = newAddress.state;
-  }
-  return address;
+  return await findAddressHepler(country,pincode,city,street1,street2,row,headerMap,address);
+ 
 }
 
 async function validateAddress(

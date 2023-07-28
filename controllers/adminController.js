@@ -15,7 +15,8 @@ const {
   deleteColleById,
   deleteItem,
   addCountry,
-  getCountry
+  getCountry,
+  InternationalCountryPrice
 } = require("../Models/adminModel");
 
 async function allUsers(req, res) {
@@ -104,6 +105,12 @@ async function getInvalidCountries(req,res){
   const response=await getCountry();
   res.send(response);
 }
+async function addInternationalCountryPrice(req,res){
+  const data=req.body;
+  const response=await InternationalCountryPrice(data);
+  res.send(response);
+
+}
 module.exports = {
   deleteCollege,
   allUsers,
@@ -121,5 +128,6 @@ module.exports = {
   addExcelHeaderController,
   deleteCurrentItem,
   addNonServicableCountries,
-  getInvalidCountries
+  getInvalidCountries,
+  addInternationalCountryPrice
 };
