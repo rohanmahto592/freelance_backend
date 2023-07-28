@@ -103,7 +103,7 @@ const country_alph2_Code=[
   { "Code": "IS", "Name": "Iceland" },
   { "Code": "IN", "Name": "India" },
   { "Code": "ID", "Name": "Indonesia" },
-  { "Code": "IR", "Name": "Iran, Islamic Republic of" },
+  { "Code": "IR", "Name": "Iran" },
   { "Code": "IQ", "Name": "Iraq" },
   { "Code": "IE", "Name": "Ireland" },
   { "Code": "IM", "Name": "Isle of Man" },
