@@ -16,7 +16,7 @@ const {
   deleteItem,
   addCountry,
   getCountry,
-  InternationalCountryPrice
+ addIndianPost
 } = require("../Models/adminModel");
 
 async function allUsers(req, res) {
@@ -105,9 +105,9 @@ async function getInvalidCountries(req,res){
   const response=await getCountry();
   res.send(response);
 }
-async function addInternationalCountryPrice(req,res){
+async function addIndianPostCountryPrice(req,res){
   const data=req.body;
-  const response=await InternationalCountryPrice(data);
+  const response=await addIndianPost(data);
   res.send(response);
 
 }
@@ -129,5 +129,5 @@ module.exports = {
   deleteCurrentItem,
   addNonServicableCountries,
   getInvalidCountries,
-  addInternationalCountryPrice
+  addIndianPostCountryPrice
 };

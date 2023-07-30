@@ -48,11 +48,16 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
     excelJsonData.map(async (row) => {
       if (row[headerMap["country code"]]?.toLowerCase() !== "india") {
         let address = { isValid: false, state: "Z" };
-       address= await findAddressHepler(  row[headerMap["country code"]],
-        row[headerMap["postal code"]],
-        row[headerMap["city"]],
-        row[headerMap["street address 1"]],
-        row[headerMap["street address 2"]],row,headerMap,address);
+        address = await findAddressHepler(
+          row[headerMap["country code"]],
+          row[headerMap["postal code"]],
+          row[headerMap["city"]],
+          row[headerMap["street address 1"]],
+          row[headerMap["street address 2"]],
+          row,
+          headerMap,
+          address
+        );
         non_servicable.push(row);
         return;
       }
@@ -63,16 +68,16 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
         row[headerMap["primary phone number"]]
       );
       let validEmail = validateEmail(row[headerMap["email"]]);
-      let validAddress =await validateAddress(
-              row[headerMap["country code"]],
-              row[headerMap["postal code"]],
-              row[headerMap["city"]],
-              row[headerMap["street address 1"]],
-              row[headerMap["street address 2"]],
-              row,
-              headerMap
-            )
-      row["State"]=validAddress.state;
+      let validAddress = await validateAddress(
+        row[headerMap["country code"]],
+        row[headerMap["postal code"]],
+        row[headerMap["city"]],
+        row[headerMap["street address 1"]],
+        row[headerMap["street address 2"]],
+        row,
+        headerMap
+      );
+      row["State"] = validAddress.state;
       if (validEmail && validNumber && validAddress.isValid) {
         const order =
           orderType !== "ADMIT/DEPOSIT"
@@ -99,14 +104,14 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
       return;
     })
   );
-  const response=await move_non_sericable(non_servicable);
+  const response = await move_non_sericable(non_servicable);
   return {
     dispatched: dispatched,
     invalid: invalid,
     non_servicable: response?.non_servicable,
     duplicates,
-    ShipRocket_Delivery:response?.ShipRocket_delivery,
-    IndianPost_Delivery:response?.IndianPost_delivery
+    ShipRocket_Delivery: response?.ShipRocket_delivery,
+    IndianPost_Delivery: response?.IndianPost_delivery,
   };
 }
 
@@ -131,16 +136,24 @@ function minimumDistance(str1, str2) {
     return false;
   }
 }
-async function findAddressHepler(country,pincode, city, street1, street2,row,headerMap,address)
-{
-  
+async function findAddressHepler(
+  country,
+  pincode,
+  city,
+  street1,
+  street2,
+  row,
+  headerMap,
+  address
+) {
   process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
-  const location = await findAddress(country,pincode, city, street1, street2);
+  const location = await findAddress(country, pincode, city, street1, street2);
   let { newAddress, success } = location;
-  if(newAddress.country.toLowerCase()===country.toLowerCase() && success)
-  {
+  if (newAddress.country.toLowerCase() === country.toLowerCase() && success) {
     row[headerMap["country code"]] = newAddress.country;
-    row[headerMap["postal code"]] = newAddress?.postalCode? newAddress.postalCode : pincode;
+    row[headerMap["postal code"]] = newAddress?.postalCode
+      ? newAddress.postalCode
+      : pincode;
     row["State"] = newAddress.state;
     address.isValid = true;
     address.state = newAddress.state;
@@ -157,8 +170,16 @@ async function computeAddress(
   row,
   headerMap
 ) {
-  return await findAddressHepler(country,pincode,city,street1,street2,row,headerMap,address);
- 
+  return await findAddressHepler(
+    country,
+    pincode,
+    city,
+    street1,
+    street2,
+    row,
+    headerMap,
+    address
+  );
 }
 
 async function validateAddress(
@@ -190,12 +211,12 @@ async function validateAddress(
   }
   try {
     process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
-    pincode = pincode.toString().replace(/\s/g, "");
+    pincode = pincode?.toString().replace(/\s/g, "");
     pincode = parseFloat(pincode);
     let data = await axios.get(
       `https://api.postalpincode.in/pincode/${pincode}`
     );
-    data = data.data[0];
+    data = data?.data[0];
     if (!data["PostOffice"]) {
       address = await computeAddress(
         country,
@@ -211,31 +232,19 @@ async function validateAddress(
       return address;
     }
 
-    for (let i = 0; i < data["PostOffice"].length; i++) {
-      let cityName =
-        data.PostOffice[i]["Name"] +
-        " " +
-        data.PostOffice[i]["District"] +
-        " " +
-        data.PostOffice[i]["Division"] +
-        " " +
-        data.PostOffice[i]["Region"] +
-        " " +
-        data.PostOffice[i]["Block"];
-      cityName = cityName.toLowerCase().split(" ");
-      if (cityName.indexOf(city.toLowerCase()) !== -1) {
+    for (const postOffice of data?.PostOffice) {
+      const cityName =
+        `${postOffice.Name} ${postOffice.District} ${postOffice.Division} ${postOffice.Region} ${postOffice.Block}`.toLowerCase();
+      if (cityName.includes(city.toLowerCase())) {
         address.isValid = true;
-        address.state = data.PostOffice[i]["State"];
+        address.state = postOffice.State;
         return address;
       } else if (
-        minimumDistance(
-          data.PostOffice[i]["Name"].toLowerCase(),
-          city.toLowerCase()
-        )
+        minimumDistance(postOffice.Name.toLowerCase(), city.toLowerCase())
       ) {
-        row[headerMap["city"]] = data.PostOffice[i]["Name"];
+        row[headerMap.city] = postOffice.Name;
         address.isValid = true;
-        address.state = data.PostOffice[i]["State"];
+        address.state = postOffice.State;
         return address;
       }
     }

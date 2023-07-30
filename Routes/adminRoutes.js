@@ -18,7 +18,7 @@ const {
   deleteCurrentItem,
   addNonServicableCountries,
   getInvalidCountries,
-  addInternationalCountryPrice
+  addIndianPostCountryPrice
 } = require("../controllers/adminController.js");
 const router = express.Router();
 const multer = require("multer");
@@ -44,5 +44,5 @@ router.delete("/admin/deletecollege",validateUser,deleteCollege);
 router.delete("/admin/deleteCurrentItem",validateUser,deleteCurrentItem)
 router.post("/admin/add/nonServicableCountries",validateUser,addNonServicableCountries);
 router.get("/admin/get/nonServicableCountries",validateUser,getInvalidCountries);
-router.post("/admin/add/international/countries/price",addInternationalCountryPrice);
+router.post("/admin/add/indianpost/country/price",addIndianPostCountryPrice);
 module.exports = router;
