@@ -83,9 +83,9 @@ async function fetchItems() {
   }
 }
 async function updatecartItem(data) {
-  const { _id, quantity } = data;
+  const { id, quantity } = data;
   try {
-    const item = await Stock.findOne(_id);
+    const item = await Stock.findOne({_id:id});
     if (item) {
       item.quantity = quantity;
       await item.save();
