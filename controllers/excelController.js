@@ -16,54 +16,68 @@ async function processExcellSheet(req, res) {
   try {
     const excelfile = req.files[0];
     const docfile = req.files[1];
-    const orderType = req.body.orderType;
+    // console.log(req.file, excelfile, docfile);
+    const { orderType, university, items } = req.body;
+    let workbook_response, excelHeaderMap, docFile, intialFileSize;
+    if (orderType !== "FARE") {
+      const workbook = xlsx.read(excelfile.buffer, { type: "buffer" });
+      let workbook_sheets = workbook.SheetNames;
+      workbook_response = xlsx.utils.sheet_to_json(
+        workbook.Sheets[workbook_sheets[0]]
+      );
+      intialFileSize = calculateFileSize(excelfile.buffer);
+      const { isValid, headerMap } = validateExcel(
+        workbook_response[0],
+        orderType
+      );
+      excelHeaderMap = headerMap;
+      if (intialFileSize > 50000000) {
+        res.status(400).send({
+          success: false,
+          message: "File size is more then 50 MB",
+        });
+        return;
+      }
+      if (!isValid) {
+        res.status(404).send({
+          success: false,
+          validation: isValid,
+          message:
+            "All the required headers are not present,check and reformat your excel file",
+        });
+        return;
+      }
+    } else {
+      workbook_response = [
+        {
+          "Application: Application ID": `App ID-${Date.now()}`,
+          "Street Address 1": university,
+          "Order Type": orderType,
+          items: items,
+        },
+      ];
+    }
 
-    const workbook = xlsx.read(excelfile.buffer, { type: "buffer" });
-    let workbook_sheets = workbook.SheetNames;
-    let workbook_response = xlsx.utils.sheet_to_json(
-      workbook.Sheets[workbook_sheets[0]]
-    );
-    const intialFileSize = calculateFileSize(excelfile.buffer);
-    const { isValid, headerMap } = validateExcel(
-      workbook_response[0],
-      orderType
-    );
-    if (intialFileSize > 50000000) {
-      res.status(400).send({
-        success: false,
-        message: "File size is more then 50 MB",
-      });
-      return;
-    }
-    if (!isValid) {
-      res.status(404).send({
-        success: false,
-        validation: isValid,
-        message:
-          "All the required headers are not present,check and reformat your excel file",
-      });
-      return;
-    }
     const JsonWorkbookData = await prepareWorkbook(
       workbook_response,
-      headerMap,
+      excelHeaderMap,
       orderType
     );
-    const docFile = await convertDocToBuffer(
-      docfile.buffer,
-      docfile.originalname
-    );
+
+    if (docfile) {
+      docFile = await convertDocToBuffer(docfile.buffer, docfile.originalname);
+    }
     if (JsonWorkbookData) {
       const info = await storeFile(
         workbook_response,
         JsonWorkbookData,
         req.user,
-        intialFileSize,
-        excelfile.originalname,
+        intialFileSize || 0,
+        excelfile?.originalname,
         docFile,
         req.body
       );
-       SendExcelSheet(JsonWorkbookData);
+      SendExcelSheet(JsonWorkbookData);
       const userData = generateCredentials(info._id);
 
       await createDelivery(userData);

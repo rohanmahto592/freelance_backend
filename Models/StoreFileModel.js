@@ -10,6 +10,7 @@ async function storeFile(
   body
 ) {
   const jsonString = JSON.stringify(processedFileJson);
+  console.log(processedFileJson);
   const buffer = Buffer.from(jsonString, "utf8");
   initialFileSize = (initialFileSize / (1024 * 1024)).toPrecision(4) + " MB";
   let processedFileSize =
