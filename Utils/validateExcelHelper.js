@@ -247,6 +247,15 @@ async function validateAddress(
         address.state = postOffice.State;
         return address;
       }
+      else
+      {
+        if(city && pincode)
+        {
+          address.isValid=true,
+          address.state=postOffice.State;
+          return address;
+        }
+      }
     }
     address = await computeAddress(
       country,
