@@ -5,6 +5,8 @@ const College = require("../Schema/collegeSchema");
 const ExcelHeader = require("../Schema/excelHeadersSchema");
 const NonServicableCountry=require("../Schema/nonServicableCountires")
 const indianPostService=require("../Schema/indianPostSchema")
+const excelFile=require("../Schema/fileSchema");
+const Order = require("../Schema/OrderSchema");
 async function getAllUsers(isVerified) {
   if (isVerified == "true") {
     try {
@@ -233,6 +235,28 @@ async function addIndianPost(data)
     return { success: false, message: "failed to add international country consignment details,try again after sometime" };
   }
 }
+async function getExcelSheets()
+{
+  try{
+    
+    const response= await excelFile.find().select('_id userRef name orderType createdAt');
+    return { success: true, message: response };
+  }catch(err)
+  {
+    return { success: false, message: "failed to fetch excelsheet Details" };
+  }
+}
+async function getDispatchedOrders(id)
+{
+  try{
+    
+    const response= await Order.find({excelSheetRef:id});
+    return { success: true, message: response };
+  }catch(err)
+  {
+    return { success: false, message: "failed to add international country consignment details,try again after sometime" };
+  }
+}
 module.exports = {
   getAllUsers,
   verifySelectedUsers,
@@ -251,5 +275,7 @@ module.exports = {
   deleteItem,
   addCountry,
   getCountry,
-  addIndianPost
+  addIndianPost,
+  getExcelSheets,
+  getDispatchedOrders
 };
