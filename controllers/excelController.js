@@ -26,7 +26,7 @@ async function processExcellSheet(req, res) {
         workbook.Sheets[workbook_sheets[0]]
       );
       intialFileSize = calculateFileSize(excelfile.buffer);
-      const { isValid, headerMap } = validateExcel(
+      const { isValid, headerMap } = await validateExcel(
         workbook_response[0],
         orderType
       );

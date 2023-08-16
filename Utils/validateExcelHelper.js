@@ -26,8 +26,8 @@ function mapMandatoryFields(headerArray, mandatoryFields) {
   });
   return resultMap;
 }
-function validateExcel(data, orderType) {
-  let mandatoryFields = getMandatoryFields[orderType];
+async function validateExcel(data, orderType) {
+  let mandatoryFields = await getMandatoryFields(orderType);
   let headers = Object.keys(data);
   let isValid = checkMandatoryFields(headers, mandatoryFields);
   const headerMap = mapMandatoryFields(headers, mandatoryFields);
