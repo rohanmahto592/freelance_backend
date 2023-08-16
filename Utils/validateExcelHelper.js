@@ -47,6 +47,7 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
 
   await Promise.all(
     excelJsonData.map(async (row) => {
+      row["AWB NO"]='';
       if (orderType !== "FARE") {
         if (row[headerMap["country code"]]?.toLowerCase() !== "india") {
           let address = { isValid: false, state: "Z" };
@@ -69,6 +70,7 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
         validNumber = validatePhoneNumber(
           row[headerMap["primary phone number"]]
         );
+       
         validEmail = validateEmail(row[headerMap["email"]]);
         checkValidAddress = await validateAddress(
           row[headerMap["country code"]],
@@ -79,11 +81,11 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
           row,
           headerMap
         );
-        row["State"] = validAddress.state;
+        row["State"] =  checkValidAddress.state;
       }
       if (
         orderType === "FARE" ||
-        (validEmail && validNumber && validAddress.isValid)
+        (validEmail && validNumber &&  checkValidAddress.isValid)
       ) {
         const order =
           orderType !== "ADMIT/DEPOSIT"

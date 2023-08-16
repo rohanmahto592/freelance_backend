@@ -9,20 +9,19 @@ const orderSchema = new mongoose.Schema({
     default: "PENDING",
   },
   trackingId: {
-    type: String,
+    type: Array,
   },
   jsonRawData: {
     type: String,
   },
   excelSheetRef: {
     type: String,
-    // required: true,
   },
   orderType: {
     type: String,
     required: true,
   },
-});
+}, { timestamps: true});
 
 const Order = mongoose.model("Order", orderSchema);
 module.exports = Order;

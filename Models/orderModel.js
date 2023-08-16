@@ -1,19 +1,18 @@
 const { Mongoose } = require("mongoose");
 const Order = require("../Schema/OrderSchema");
-// const DeliveryCredentials = require("../Schema/deliverySchema");
+const DeliveryCredentials = require("../Schema/deliverySchema");
 
-// const getUserDeliveryExcelRefById=async(id)=>{
-//     try{
-//     const excelSheetRef=await DeliveryCredentials.findById(id);
-//     return {success:true,message:excelSheetRef.excelRef};
-//     }
-//     catch(err)
-//     {
-//         return {success:false,message:"not found"};
-//     }
+const getUserDeliveryExcelRefById=async(id)=>{
+    try{
+    const excelSheetRef=await DeliveryCredentials.findById(id);
+    return {success:true,message:excelSheetRef.excelRef};
+    }
+    catch(err)
+    {
+        return {success:false,message:"not found"};
+    }
 
-// }
-// module.exports={getUserDeliveryExcelRefById}
+}
 
 async function createOrder(orderData) {
   try {
@@ -65,4 +64,4 @@ async function createOrder(orderData) {
   }
 }
 
-module.exports = { createOrder };
+module.exports = { createOrder,getUserDeliveryExcelRefById };

@@ -9,7 +9,7 @@ function generateCredentials(excelRef) {
   const email = chance.email();
   const password = chance.string({ length: 8 });
   const hashPassword = passwordEncryption(password);
-
+  console.log(email,"  ",password);
   sendGuestCredentials(email, password);
 
   return {

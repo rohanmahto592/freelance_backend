@@ -54,6 +54,7 @@ async function processExcellSheet(req, res) {
           "Street Address 1": university,
           "Order Type": orderType,
           items: items,
+          "AWB NO":''
         },
       ];
     }
