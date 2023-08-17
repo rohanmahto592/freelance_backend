@@ -21,7 +21,7 @@ async function checkIfCountryExsistsInDB(
   });
   return response;
 }
-async function move_non_sericable(non_servicable) {
+async function move_non_sericable(non_servicable,headerMap) {
   const getInternationalServiceDetails =
     await internationalCountryService.find();
   const IndianPostCountriesPrice = await indianPostService.find();
@@ -34,7 +34,7 @@ async function move_non_sericable(non_servicable) {
       const { isTrue, consignment_amount, shipment_service } =
         await checkIfCountryExsistsInDB(
           getInternationalServiceDetails,
-          item["Country Code"]
+          item[headerMap["country"]]
         );
       if (isTrue) {
         if (shipment_service == "shiprocket") {
@@ -47,7 +47,7 @@ async function move_non_sericable(non_servicable) {
       } else {
         let country_info = country_alph2_Code.find(
           (country) =>
-            country.Name.toLowerCase() == item["Country Code"].toLowerCase()
+            country.Name.toLowerCase() ==  item[headerMap["country"]].toLowerCase()
         );
         let shipRocketAmount = parseInt(
           await shipRocket_consignment_price_calculator(country_info?.Code)
@@ -65,9 +65,9 @@ async function move_non_sericable(non_servicable) {
               IndianPost_delivery.push(item);
               const response =
                 await internationalCountryService.findOneAndUpdate(
-                  { country_name: item["Country Code"] },
+                  { country_name:  item[headerMap["country"]] },
                   {
-                    country_name: item["Country Code"],
+                    country_name:  item[headerMap["country"]],
                     price: indianPostAmount,
                     shipment_service: "indianpost",
                   },
@@ -77,9 +77,9 @@ async function move_non_sericable(non_servicable) {
               ShipRocket_delivery.push(item);
               const response =
                 await internationalCountryService.findOneAndUpdate(
-                  { country_name: item["Country Code"] },
+                  { country_name: item[headerMap["country"]] },
                   {
-                    country_name: item["Country Code"],
+                    country_name:  item[headerMap["country"]],
                     price: shipRocketAmount,
                     shipment_service: "shiprocket",
                   },
@@ -90,9 +90,9 @@ async function move_non_sericable(non_servicable) {
         } else {
           ShipRocket_delivery.push(item);
           const response = await internationalCountryService.findOneAndUpdate(
-            { country_name: item["Country Code"] },
+            { country_name:  item[headerMap["country"]] },
             {
-              country_name: item["Country Code"],
+              country_name:  item[headerMap["country"]],
               price: shipRocketAmount,
               shipment_service: "shiprocket",
             },

@@ -16,7 +16,6 @@ async function processExcellSheet(req, res) {
   try {
     const excelfile = req.files[0];
     const docfile = req.files[1];
-    // console.log(req.file, excelfile, docfile);
     const { orderType, university, items } = req.body;
     let workbook_response, excelHeaderMap, docFile, intialFileSize;
     if (orderType !== "FARE") {

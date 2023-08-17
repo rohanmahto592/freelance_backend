@@ -8,6 +8,7 @@ function calculateFileSize(file) {
   return file.length;
 }
 function checkMandatoryFields(headerArray, mandatoryFields) {
+  //console.log(mandatoryFields)
   const regexFields = mandatoryFields.map(
     (field) => new RegExp(field.toLowerCase(), "i")
   );
@@ -28,6 +29,7 @@ function mapMandatoryFields(headerArray, mandatoryFields) {
 }
 async function validateExcel(data, orderType) {
   let mandatoryFields = await getMandatoryFields(orderType);
+  mandatoryFields = mandatoryFields.map((headers) => headers.name);
   let headers = Object.keys(data);
   let isValid = checkMandatoryFields(headers, mandatoryFields);
   const headerMap = mapMandatoryFields(headers, mandatoryFields);
@@ -43,16 +45,15 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
   let non_servicable = [];
   let dispatched = [];
   let duplicates = [];
-
   await Promise.all(
     excelJsonData.map(async (row) => {
       let validEmail, validNumber, checkValidAddress;
       row["AWB NO"] = "";
       if (orderType !== "FARE") {
-        if (row[headerMap["country code"]]?.toLowerCase() !== "india") {
+        if (row[headerMap["country"]]?.toLowerCase() !== "india") {
           let address = { isValid: false, state: "Z" };
           address = await findAddressHepler(
-            row[headerMap["country code"]],
+            row[headerMap["country"]],
             row[headerMap["postal code"]],
             row[headerMap["city"]],
             row[headerMap["street address 1"]],
@@ -64,18 +65,16 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
           non_servicable.push(row);
           return;
         }
-        row[headerMap["primary phone number"]] = formatPhoneNumber(
-          row[headerMap["primary phone number"]]
+        row[headerMap["phone number"]] = formatPhoneNumber(
+          row[headerMap["phone number"]]
         );
 
-        validNumber = validatePhoneNumber(
-          row[headerMap["primary phone number"]]
-        );
+        validNumber = validatePhoneNumber(row[headerMap["phone number"]]);
 
         validEmail = validateEmail(row[headerMap["email"]]);
 
         checkValidAddress = await validateAddress(
-          row[headerMap["country code"]],
+          row[headerMap["country"]],
           row[headerMap["postal code"]],
           row[headerMap["city"]],
           row[headerMap["street address 1"]],
@@ -98,8 +97,8 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
         const newOrder = await createOrder({
           applicationId:
             orderType === "FARE"
-              ? row["Application: Application ID"]
-              : row[headerMap["application: application id"]],
+              ? row["application id"]
+              : row[headerMap["application id"]],
           orderType: order,
         });
         if (newOrder.success) {
@@ -116,14 +115,21 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
       return;
     })
   );
-  const response = await move_non_sericable(non_servicable);
+  const response = await move_non_sericable(non_servicable, headerMap);
+
+  const deliveryMapping = await createOrderInternational(
+    response,
+    headerMap,
+    orderType,
+    duplicates
+  );
   return {
     dispatched: dispatched,
     invalid: invalid,
     non_servicable: response?.non_servicable,
     duplicates,
-    ShipRocket_Delivery: response?.ShipRocket_delivery,
-    IndianPost_Delivery: response?.IndianPost_delivery,
+    ShipRocket_Delivery: deliveryMapping?.ShipRocket_Delivery,
+    IndianPost_Delivery: deliveryMapping?.IndianPost_Delivery,
   };
 }
 
@@ -162,7 +168,7 @@ async function findAddressHepler(
   const location = await findAddress(country, pincode, city, street1, street2);
   let { newAddress, success } = location;
   if (success && newAddress.country.toLowerCase() === country.toLowerCase()) {
-    row[headerMap["country code"]] = newAddress.country;
+    row[headerMap["country"]] = newAddress.country;
     row[headerMap["postal code"]] = newAddress?.postalCode
       ? newAddress.postalCode
       : pincode;
@@ -284,6 +290,59 @@ async function validateAddress(
   } catch (err) {
     return address;
   }
+}
+async function createOrderInternational(
+  internationalExcelData,
+  headerMap,
+  order,
+  duplicates
+) {
+  const { ShipRocket_delivery, IndianPost_delivery } = internationalExcelData;
+  const internationalDelivery = {
+    ShipRocket_Delivery: [],
+    IndianPost_Delivery: [],
+  };
+  const ShipRocket_Delivery = Promise.all(
+    ShipRocket_delivery?.map(async (row) => {
+      const newOrder = await createOrder({
+        applicationId: row[headerMap["application id"]],
+        orderType: order,
+      });
+
+      if (newOrder.success) {
+        return row;
+      } else {
+        if (newOrder.isDuplicate) {
+          duplicates.push(row);
+        }
+      }
+    })
+  );
+
+  const IndianPost_Delivery = Promise.all(
+    IndianPost_delivery?.map(async (row) => {
+      const newOrder = await createOrder({
+        applicationId: row[headerMap["application id"]],
+        orderType: order,
+      });
+      if (newOrder.success) {
+        return row;
+      } else {
+        if (newOrder.isDuplicate) {
+          duplicates.push(row);
+        }
+      }
+    })
+  );
+  await Promise.all([ShipRocket_Delivery, IndianPost_Delivery]).then(
+    ([shipRocketResult, indianPostResult]) => {
+      shipRocketResult = shipRocketResult.filter((item) => item !== undefined);
+      indianPostResult = indianPostResult.filter((item) => item !== undefined);
+      internationalDelivery.ShipRocket_Delivery = shipRocketResult;
+      internationalDelivery.IndianPost_Delivery = indianPostResult;
+    }
+  );
+  return internationalDelivery;
 }
 
 module.exports = {

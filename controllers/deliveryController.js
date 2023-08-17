@@ -4,7 +4,6 @@ const { UpdateExcelSheet } = require("../Utils/UpdateExcelSheetOrderHelper");
 const uploadDeliveryExcelSheet = (req, res) => {
   const excelSheetBufferData = req.file.buffer;
   const userId = req.body.userDeliveryId;
-  console.log(userId);
   getUserDeliveryExcelRefById(userId).then((getExcelSheetRef) => {
     if (!getExcelSheetRef.success) {
       res.send({
