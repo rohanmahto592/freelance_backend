@@ -269,6 +269,15 @@ async function getNonAdminUsers()
     return { success: false, message: "failed to fetch users" };
   }
 }
+async function deleteCountry(id)
+{
+  try{
+    await NonServicableCountry.findByIdAndDelete(id);
+    return { success: true, message: "deleted Successfully" };
+  }catch(err){
+    return { success: false, message: "failed to delete country" };
+  }
+}
 module.exports = {
   getAllUsers,
   verifySelectedUsers,
@@ -290,5 +299,6 @@ module.exports = {
   addIndianPost,
   getExcelSheets,
   getDispatchedOrders,
-  getNonAdminUsers
+  getNonAdminUsers,
+  deleteCountry
 };

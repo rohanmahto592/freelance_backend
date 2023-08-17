@@ -19,7 +19,8 @@ const {
  addIndianPost,
  getExcelSheets,
  getDispatchedOrders,
- getNonAdminUsers
+ getNonAdminUsers,
+ deleteCountry
 } = require("../Models/adminModel");
 
 async function allUsers(req, res) {
@@ -129,6 +130,11 @@ async function fetchAllUsers(req,res)
   const response=await getNonAdminUsers();
   res.send(response)
 }
+async function deleteNonServicableCountries(req,res){
+  const {id}=req.query;
+  const response=await deleteCountry(id);
+  res.send(response)
+} 
 module.exports = {
   deleteCollege,
   allUsers,
@@ -150,5 +156,6 @@ module.exports = {
   addIndianPostCountryPrice,
   getExcelSheetInfo,
   getOrders,
-  fetchAllUsers
+  fetchAllUsers,
+  deleteNonServicableCountries
 };
