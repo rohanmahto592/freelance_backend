@@ -20,7 +20,8 @@ const {
   getInvalidCountries,
   addIndianPostCountryPrice,
   getExcelSheetInfo,
-  getOrders
+  getOrders,
+  fetchAllUsers
 } = require("../controllers/adminController.js");
 const router = express.Router();
 const multer = require("multer");
@@ -49,4 +50,5 @@ router.get("/admin/get/nonServicableCountries",validateUser,getInvalidCountries)
 router.post("/admin/add/indianpost/country/price",addIndianPostCountryPrice);
 router.get("/admin/get/excelsheetinfo",validateUser,getExcelSheetInfo);
 router.get("/admin/get/fetchOrders",validateUser,getOrders)
+router.get("/admin/get/fetchAllUsers",validateUser,fetchAllUsers);
 module.exports = router;

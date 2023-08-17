@@ -7,6 +7,7 @@ const NonServicableCountry=require("../Schema/nonServicableCountires")
 const indianPostService=require("../Schema/indianPostSchema")
 const excelFile=require("../Schema/fileSchema");
 const Order = require("../Schema/OrderSchema");
+const { default: mongoose } = require("mongoose");
 async function getAllUsers(isVerified) {
   if (isVerified == "true") {
     try {
@@ -235,12 +236,15 @@ async function addIndianPost(data)
     return { success: false, message: "failed to add international country consignment details,try again after sometime" };
   }
 }
-async function getExcelSheets()
+async function getExcelSheets(id)
 {
+  
   try{
-    
-    const response= await excelFile.find().select('_id userRef name orderType createdAt');
+   
+    const response= await excelFile.find({"userRef":new mongoose.Types.ObjectId(id)}).select('_id userRef name orderType createdAt');
     return { success: true, message: response };
+    
+
   }catch(err)
   {
     return { success: false, message: "failed to fetch excelsheet Details" };
@@ -248,13 +252,21 @@ async function getExcelSheets()
 }
 async function getDispatchedOrders(id)
 {
-  console.log(id)
   try{
     const response= await Order.find({excelSheetRef:id});
     return { success: true, message: response };
   }catch(err)
   {
     return { success: false, message: "failed to add international country consignment details,try again after sometime" };
+  }
+}
+async function getNonAdminUsers()
+{
+  try{
+    const response=await users.find({'isAdmin':false,'isVerified':true}).select('_id firstName lastName');
+    return { success: true, message: response };
+  }catch(err){
+    return { success: false, message: "failed to fetch users" };
   }
 }
 module.exports = {
@@ -277,5 +289,6 @@ module.exports = {
   getCountry,
   addIndianPost,
   getExcelSheets,
-  getDispatchedOrders
+  getDispatchedOrders,
+  getNonAdminUsers
 };

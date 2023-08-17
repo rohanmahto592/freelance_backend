@@ -18,7 +18,8 @@ const {
   getCountry,
  addIndianPost,
  getExcelSheets,
- getDispatchedOrders
+ getDispatchedOrders,
+ getNonAdminUsers
 } = require("../Models/adminModel");
 
 async function allUsers(req, res) {
@@ -114,13 +115,19 @@ async function addIndianPostCountryPrice(req,res){
 
 }
 async function getExcelSheetInfo(req,res){
-  const response=await getExcelSheets();
+  const {id}=req.query;
+  const response=await getExcelSheets(id);
   res.send(response);
 }
 async function getOrders(req,res){
   const {id}=req.query;
   const response=await getDispatchedOrders(id);
   res.send(response);
+}
+async function fetchAllUsers(req,res)
+{
+  const response=await getNonAdminUsers();
+  res.send(response)
 }
 module.exports = {
   deleteCollege,
@@ -142,5 +149,6 @@ module.exports = {
   getInvalidCountries,
   addIndianPostCountryPrice,
   getExcelSheetInfo,
-  getOrders
+  getOrders,
+  fetchAllUsers
 };
