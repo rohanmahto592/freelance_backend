@@ -3,9 +3,9 @@ const additem = require("../Schema/Item");
 const Stock = require("../Schema/Stock");
 const College = require("../Schema/collegeSchema");
 const ExcelHeader = require("../Schema/excelHeadersSchema");
-const NonServicableCountry=require("../Schema/nonServicableCountires")
-const indianPostService=require("../Schema/indianPostSchema")
-const excelFile=require("../Schema/fileSchema");
+const NonServicableCountry = require("../Schema/nonServicableCountires");
+const indianPostService = require("../Schema/indianPostSchema");
+const excelFile = require("../Schema/fileSchema");
 const Order = require("../Schema/OrderSchema");
 async function getAllUsers(isVerified) {
   if (isVerified == "true") {
@@ -87,7 +87,7 @@ async function fetchItems() {
 async function updatecartItem(data) {
   const { id, quantity } = data;
   try {
-    const item = await Stock.findOne({_id:id});
+    const item = await Stock.findOne({ _id: id });
     if (item) {
       item.quantity = quantity;
       await item.save();
@@ -120,7 +120,9 @@ async function addStockItem(stockData) {
       university: university,
     });
     if (item) {
-      item.quantity = (parseInt(item.quantity?item.quantity:0) + parseInt(quantity)).toString();
+      item.quantity = (
+        parseInt(item.quantity ? item.quantity : 0) + parseInt(quantity)
+      ).toString();
       await item.save();
       return { success: true, message: "Stock updated successfully" };
     }
@@ -184,77 +186,96 @@ async function fetchExcelHeaders(orderType) {
     return { success: false, message: "internal server error" };
   }
 }
-async function deleteColleById(id){
-  try{
-    const response=await College.findByIdAndDelete(id);
+async function deleteColleById(id) {
+  try {
+    const response = await College.findByIdAndDelete(id);
     return { success: true, message: "college deleted successfully" };
-  }catch(err)
-  {
-    return { success: false, message: "failed to delete the college,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message: "failed to delete the college,try again after sometime",
+    };
   }
 }
-async function deleteItem(id){
-  try{
-    const response=await Stock.findByIdAndDelete(id);
+async function deleteItem(id) {
+  try {
+    const response = await Stock.findByIdAndDelete(id);
     return { success: true, message: "Item deleted successfully" };
-  }catch(err)
-  {
-    return { success: false, message: "failed to delete the item,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message: "failed to delete the item,try again after sometime",
+    };
   }
 }
-async function addCountry(country)
-{
-  try{
-    const response= new NonServicableCountry({name:country});
-    await response.save()
+async function addCountry(country) {
+  try {
+    const response = new NonServicableCountry({ name: country });
+    await response.save();
     return { success: true, message: "country added successfully" };
-  }catch(err)
-  {
-    return { success: false, message: "failed to add the country,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message: "failed to add the country,try again after sometime",
+    };
   }
 }
-async function getCountry(){
-  try{
-    
-    const response= await NonServicableCountry.find();
+
+async function deleteNonSericableCountry(id) {
+  try {
+    const response = await NonServicableCountry.findByIdAndDelete(id);
+    return { success: true, message: "Country deleted successfully" };
+  } catch (err) {
+    return {
+      success: false,
+      message: "failed to delete the country,try again after sometime",
+    };
+  }
+}
+async function getCountry() {
+  try {
+    const response = await NonServicableCountry.find();
     return { success: true, message: response };
-  }catch(err)
-  {
-    return { success: false, message: "failed to fetch the country,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message: "failed to fetch the country,try again after sometime",
+    };
   }
 }
-async function addIndianPost(data)
-{
-  try{
-    
-    const response= new  indianPostService(data);
+async function addIndianPost(data) {
+  try {
+    const response = new indianPostService(data);
     await response.save();
     return { success: true, message: response };
-  }catch(err)
-  {
-    return { success: false, message: "failed to add international country consignment details,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message:
+        "failed to add international country consignment details,try again after sometime",
+    };
   }
 }
-async function getExcelSheets()
-{
-  try{
-    
-    const response= await excelFile.find().select('_id userRef name orderType createdAt');
+async function getExcelSheets() {
+  try {
+    const response = await excelFile
+      .find()
+      .select("_id userRef name orderType createdAt");
     return { success: true, message: response };
-  }catch(err)
-  {
+  } catch (err) {
     return { success: false, message: "failed to fetch excelsheet Details" };
   }
 }
-async function getDispatchedOrders(id)
-{
-  try{
-    
-    const response= await Order.find({excelSheetRef:id});
+async function getDispatchedOrders(id) {
+  try {
+    const response = await Order.find({ excelSheetRef: id });
     return { success: true, message: response };
-  }catch(err)
-  {
-    return { success: false, message: "failed to add international country consignment details,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message:
+        "failed to add international country consignment details,try again after sometime",
+    };
   }
 }
 module.exports = {
@@ -277,5 +298,6 @@ module.exports = {
   getCountry,
   addIndianPost,
   getExcelSheets,
-  getDispatchedOrders
+  getDispatchedOrders,
+  deleteNonSericableCountry,
 };
