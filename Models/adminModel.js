@@ -263,7 +263,7 @@ async function getDispatchedOrders(id)
 async function getNonAdminUsers()
 {
   try{
-    const response=await users.find({'isAdmin':false,'isVerified':true}).select('_id firstName lastName');
+    const response=await users.find({'isAdmin':false,'isVerified':true}).select('_id firstName lastName email universityName userType');
     return { success: true, message: response };
   }catch(err){
     return { success: false, message: "failed to fetch users" };
