@@ -13,7 +13,7 @@ async function checkIfCountryExsistsInDB(
     shipment_service: "",
   };
   getInternationalServiceDetails?.map((item) => {
-    if (item.country_name?.toLowerCase() == countryName.toLowerCase()) {
+    if (item.country_name?.toLowerCase() == countryName?.toLowerCase()) {
       response.isTrue = true;
       response.consignment_amount = item.amount;
       response.shipment_service = item.shipment_service;
@@ -47,7 +47,7 @@ async function move_non_sericable(non_servicable,headerMap) {
       } else {
         let country_info = country_alph2_Code.find(
           (country) =>
-            country.Name.toLowerCase() ==  item[headerMap["country"]].toLowerCase()
+            country?.Name?.toLowerCase() ==  item[headerMap["country"]]?.toLowerCase()
         );
         let shipRocketAmount = parseInt(
           await shipRocket_consignment_price_calculator(country_info?.Code)
@@ -55,7 +55,7 @@ async function move_non_sericable(non_servicable,headerMap) {
 
         let indianPostAmount = parseInt(
           await indianPost_consignment_price(
-            country_info.Name,
+            country_info?.Name,
             IndianPostCountriesPrice
           )
         );
@@ -118,7 +118,7 @@ async function indianPost_consignment_price(
 ) {
   return new Promise((resolve, reject) => {
     IndianPostCountriesPrice.forEach((country) => {
-      if (country?.country_name?.toLowerCase() === countryName.toLowerCase()) {
+      if (country?.country_name?.toLowerCase() === countryName?.toLowerCase()) {
         resolve(country.price);
       }
     });

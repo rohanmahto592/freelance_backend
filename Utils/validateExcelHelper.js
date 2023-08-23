@@ -167,7 +167,7 @@ async function findAddressHepler(
   process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
   const location = await findAddress(country, pincode, city, street1, street2);
   let { newAddress, success } = location;
-  if (success && newAddress.country.toLowerCase() === country.toLowerCase()) {
+  if (success && newAddress?.country?.toLowerCase() === country?.toLowerCase()) {
     row[headerMap["country"]] = newAddress.country;
     row[headerMap["postal code"]] = newAddress?.postalCode
       ? newAddress.postalCode
