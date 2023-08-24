@@ -4,6 +4,7 @@ const { findAddress } = require("./locationHelper");
 const { createOrder } = require("../Models/orderModel");
 const { getMandatoryFields } = require("./getMandatoryFields");
 const move_non_sericable = require("./group_non_servicable_shipment");
+const { default: mongoose } = require("mongoose");
 function calculateFileSize(file) {
   return file.length;
 }
@@ -45,6 +46,10 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
   let non_servicable = [];
   let dispatched = [];
   let duplicates = [];
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try{
+   
   await Promise.all(
     excelJsonData.map(async (row) => {
       let validEmail, validNumber, checkValidAddress;
@@ -53,7 +58,7 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
         if (row[headerMap["country"]]?.toLowerCase() !== "india") {
           let address = { isValid: false, state: "Z" };
           address = await findAddressHepler(
-            row[headerMap["country"]],
+            row[headerMap["country code"]],
             row[headerMap["postal code"]],
             row[headerMap["city"]],
             row[headerMap["street address 1"]],
@@ -114,7 +119,16 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
       invalid.push(row);
       return;
     })
-  );
+   
+  )
+  await session.commitTransaction();
+  }catch(err)
+  {
+    await session.abortTransaction();
+  }finally
+  {
+    await session.endSession();
+  }
   const response = await move_non_sericable(non_servicable, headerMap);
 
   const deliveryMapping = await createOrderInternational(
@@ -258,7 +272,7 @@ async function validateAddress(
         address.state = postOffice.State;
         return address;
       } else if (
-        minimumDistance(postOffice.Name.toLowerCase(), city.toLowerCase())
+        minimumDistance(postOffice?.Name?.toLowerCase(), city?.toLowerCase())
       ) {
         row[headerMap.city] = postOffice.Name;
         address.isValid = true;

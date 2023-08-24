@@ -254,7 +254,21 @@ async function getDispatchedOrders(id)
 {
   try{
     const response= await Order.find({excelSheetRef:id});
-    return { success: true, message: response };
+    if(response?.length>0)
+    {
+    return { success: true, message: response,isOne:false };
+    }
+    else
+    {
+      //console.log(id)
+      const response=await excelFile.find({"_id":new mongoose.Types.ObjectId(id)}).select('processedExcelFile');
+      const {dispatched,ShipRocket_Delivery,IndianPost_Delivery}=JSON.parse(response[0]?.processedExcelFile);
+      // console.log("shiprocket",ShipRocket_Delivery.length,IndianPost_Delivery.length)
+      const orders=[...dispatched,...ShipRocket_Delivery,...IndianPost_Delivery];
+      return { success: true, message: orders,isOne:true }
+
+
+    }
   }catch(err)
   {
     return { success: false, message: "failed to add international country consignment details,try again after sometime" };
