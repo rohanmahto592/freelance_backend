@@ -101,7 +101,10 @@ async function login(req, res) {
           success: true,
           message: "Logged In Successfully",
           userType: userResponse.user.userType,
-          id:userResponse.user._id
+          id:userResponse.user._id,
+          universityName:userResponse?.user?.universityName,
+          firstName:userResponse.user.firstName?userResponse.user.firstName:'',
+          lastName:userResponse.user.lastName?userResponse.user.lastName:'',
         });
     }
   } catch (err) {
