@@ -38,7 +38,7 @@ async function processExcellSheet(req, res) {
         return;
       }
       if (!isValid) {
-        res.status(404).send({
+        res.send({
           success: false,
           validation: isValid,
           message:
