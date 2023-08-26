@@ -1,15 +1,15 @@
 const { default: axios } = require("axios");
 const stringSimilarity = require("string-similarity");
-const { findAddress } = require("./locationHelper");
+const { findAddress, findByCityAndCountry,updateLocationData } = require("./locationHelper");
 const { createOrder } = require("../Models/orderModel");
 const { getMandatoryFields } = require("./getMandatoryFields");
-const move_non_sericable = require("./group_non_servicable_shipment");
+const move_non_servicable = require("./group_non_servicable_shipment");
+
 const { default: mongoose } = require("mongoose");
 function calculateFileSize(file) {
   return file.length;
 }
 function checkMandatoryFields(headerArray, mandatoryFields) {
-  //console.log(mandatoryFields)
   const regexFields = mandatoryFields.map(
     (field) => new RegExp(field.toLowerCase(), "i")
   );
@@ -58,7 +58,7 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
         if (row[headerMap["country"]]?.toLowerCase() !== "india") {
           let address = { isValid: false, state: "Z" };
           address = await findAddressHepler(
-            row[headerMap["country code"]],
+            row[headerMap["country"]],
             row[headerMap["postal code"]],
             row[headerMap["city"]],
             row[headerMap["street address 1"]],
@@ -129,7 +129,7 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
   {
     await session.endSession();
   }
-  const response = await move_non_sericable(non_servicable, headerMap);
+  const response = await move_non_servicable(non_servicable, headerMap,invalid);
 
   const deliveryMapping = await createOrderInternational(
     response,
@@ -189,6 +189,23 @@ async function findAddressHepler(
     row["State"] = newAddress.state;
     address.isValid = true;
     address.state = newAddress.state;
+  }
+  else
+  {
+    
+    if(city || country)
+    {
+      
+     const response=  await findByCityAndCountry(city,country)
+     if(response.success)
+     {
+      await updateLocationData(response.City,response.Country,response.State);
+      row[headerMap["country"]]=response.Country;
+      row['State']=response.State;
+      address.isValid=true;
+      address.state=response.State;
+     }
+    } 
   }
   return address;
 }

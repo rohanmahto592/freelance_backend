@@ -2,7 +2,49 @@ const { default: axios } = require("axios");
 const country_alph2_Code = require("./alpha2_code_country");
 const internationalCountryService = require("../Schema/InternationalCountryService");
 const indianPostService = require("../Schema/indianPostSchema");
+const {PhoneNumberUtil}=require("google-libphonenumber");
+const { callingCodes } = require("./callingCodes");
 
+function validatePhoneNumber(phoneNumber, Country) {
+  return new Promise((resolve) => {
+   
+    let code;
+    let value;
+    let phLength;
+    if (!phoneNumber) {
+      resolve(false);
+    }
+    phoneNumber=phoneNumber.toString().replace(/\D/g, "");
+    if (phoneNumber.toString()==="#ERROR") {
+      resolve(false);
+    }
+    callingCodes.forEach((country) => {
+      if (country?.country?.toLowerCase().trim() === Country?.toLowerCase().trim()) {
+        code = country.code;
+        value=country.value;
+        phLength=country?.phLength?country.phLength:0
+      }
+    });
+    try {
+      if(code && phoneNumber.toString().length>=phLength && phoneNumber.toString().length<=(value.length+phLength) )
+      {
+      phoneNumber=phoneNumber.toString();
+      phoneNumber=phoneNumber.substring(phoneNumber.length, phoneNumber.length-phLength);
+      const phoneUtil = PhoneNumberUtil.getInstance();
+      const parsedNumber = phoneUtil.parseAndKeepRawInput(`${value}${phoneNumber}`, code);
+      const isValid = phoneUtil.isValidNumber(parsedNumber);
+      resolve(isValid);
+      }
+      else
+      {
+        resolve(false)
+      }
+    } catch (error) {
+     
+      resolve(false);
+    }
+  });
+}
 async function checkIfCountryExsistsInDB(
   getInternationalServiceDetails,
   countryName
@@ -21,7 +63,8 @@ async function checkIfCountryExsistsInDB(
   });
   return response;
 }
-async function move_non_sericable(non_servicable,headerMap) {
+
+async function move_non_servicable(non_servicable,headerMap,invalid) {
   const getInternationalServiceDetails =
     await internationalCountryService.find();
   const IndianPostCountriesPrice = await indianPostService.find();
@@ -31,6 +74,10 @@ async function move_non_sericable(non_servicable,headerMap) {
     let IndianPost_delivery = [];
     for (let i = 0; i < non_servicable.length; i++) {
       const item = non_servicable[i];
+      let isValid= await validatePhoneNumber(item[headerMap["phone number"]],item[headerMap["country"]]);
+      if(isValid)
+      {
+      
       const { isTrue, consignment_amount, shipment_service } =
         await checkIfCountryExsistsInDB(
           getInternationalServiceDetails,
@@ -63,7 +110,7 @@ async function move_non_sericable(non_servicable,headerMap) {
           if (shipRocketAmount <= 2100 && indianPostAmount <= 2100) {
             if (shipRocketAmount >= indianPostAmount) {
               IndianPost_delivery.push(item);
-              const response =
+            
                 await internationalCountryService.findOneAndUpdate(
                   { country_name:  item[headerMap["country"]] },
                   {
@@ -75,7 +122,6 @@ async function move_non_sericable(non_servicable,headerMap) {
                 );
             } else {
               ShipRocket_delivery.push(item);
-              const response =
                 await internationalCountryService.findOneAndUpdate(
                   { country_name: item[headerMap["country"]] },
                   {
@@ -89,7 +135,7 @@ async function move_non_sericable(non_servicable,headerMap) {
           }
         } else {
           ShipRocket_delivery.push(item);
-          const response = await internationalCountryService.findOneAndUpdate(
+          await internationalCountryService.findOneAndUpdate(
             { country_name:  item[headerMap["country"]] },
             {
               country_name:  item[headerMap["country"]],
@@ -103,7 +149,13 @@ async function move_non_sericable(non_servicable,headerMap) {
         i--;
       }
     }
-    //console.log(ShipRocket_delivery);
+    else
+    {
+      invalid.push(item);
+      non_servicable.splice(i, 1);
+     i--;
+    }
+    }
     resolve({
       non_servicable: non_servicable,
       ShipRocket_delivery: ShipRocket_delivery,
@@ -154,4 +206,4 @@ async function shipRocket_consignment_price_calculator(country_code) {
     console.log(error);
   }
 }
-module.exports = move_non_sericable;
+module.exports = move_non_servicable;
