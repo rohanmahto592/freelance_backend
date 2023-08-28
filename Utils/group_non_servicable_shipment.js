@@ -4,44 +4,40 @@ const internationalCountryService = require("../Schema/InternationalCountryServi
 const indianPostService = require("../Schema/indianPostSchema");
 const {PhoneNumberUtil}=require("google-libphonenumber");
 const { callingCodes } = require("./callingCodes");
+const { findByCityAndCountry } = require("./locationHelper");
 
 function validatePhoneNumber(phoneNumber, Country) {
   return new Promise((resolve) => {
    
     let code;
     let value;
-    let phLength;
     if (!phoneNumber) {
-      resolve(false);
+      resolve({success:false,message:"Phone number is missing"});
     }
-    phoneNumber=phoneNumber.toString().replace(/\D/g, "");
-    if (phoneNumber.toString()==="#ERROR") {
-      resolve(false);
+    phoneNumber=phoneNumber?.toString().replace(/\D/g, "");
+    if (phoneNumber?.toString()=="#ERROR!") {
+      resolve({success:false,message:"Phone number is not valid"});
     }
     callingCodes.forEach((country) => {
       if (country?.country?.toLowerCase().trim() === Country?.toLowerCase().trim()) {
         code = country.code;
         value=country.value;
-        phLength=country?.phLength?country.phLength:0
       }
     });
     try {
-      if(code && phoneNumber.toString().length>=phLength && phoneNumber.toString().length<=(value.length+phLength) )
+      if(code)
       {
-      phoneNumber=phoneNumber.toString();
-      phoneNumber=phoneNumber.substring(phoneNumber.length, phoneNumber.length-phLength);
       const phoneUtil = PhoneNumberUtil.getInstance();
-      const parsedNumber = phoneUtil.parseAndKeepRawInput(`${value}${phoneNumber}`, code);
-      const isValid = phoneUtil.isValidNumber(parsedNumber);
-      resolve(isValid);
+      const isValid=phoneUtil.isValidNumberForRegion(phoneUtil.parse(phoneNumber, code), code);
+      resolve(isValid?{success:true}:{success:false,message:'Invalid phone number'});
       }
       else
       {
-        resolve(false)
+        resolve({success:false,message:"No such mapping found for a given country. Check for correct country name"})
       }
     } catch (error) {
      
-      resolve(false);
+      resolve({success:false,message:error});
     }
   });
 }
@@ -73,9 +69,15 @@ async function move_non_servicable(non_servicable,headerMap,invalid) {
     let ShipRocket_delivery = [];
     let IndianPost_delivery = [];
     for (let i = 0; i < non_servicable.length; i++) {
-      const item = non_servicable[i];
-      let isValid= await validatePhoneNumber(item[headerMap["phone number"]],item[headerMap["country"]]);
-      if(isValid)
+      let item = non_servicable[i];
+      let response1=await findByCityAndCountry(item[headerMap["city"]],item[headerMap["country"]]);
+      if(response1.success)
+      {
+        item[headerMap["city"]]=response1.City;
+        item[headerMap["country"]]=response1.Country;
+      }
+      let response2= await validatePhoneNumber(item[headerMap["phone number"]],item[headerMap["country"]]);
+      if(response2.success)
       {
       
       const { isTrue, consignment_amount, shipment_service } =
@@ -151,6 +153,7 @@ async function move_non_servicable(non_servicable,headerMap,invalid) {
     }
     else
     {
+      item["error status"]=response2.message;
       invalid.push(item);
       non_servicable.splice(i, 1);
      i--;

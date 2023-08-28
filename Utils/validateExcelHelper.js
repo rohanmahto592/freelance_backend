@@ -149,7 +149,7 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
 
 function validatePhoneNumber(phoneNumber) {
   if (!phoneNumber) {
-    return false;
+    return {success:false,message:"Phone Number does not exist"};
   }
   let regex = /^(\+?91[\-\s]?)?[6-9]\d{9}$/;
   return regex.test(phoneNumber);
