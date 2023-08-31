@@ -22,7 +22,7 @@ async function processExcellSheet(req, res) {
       const workbook = xlsx.read(excelfile.buffer, { type: "buffer" });
       let workbook_sheets = workbook.SheetNames;
       workbook_response = xlsx.utils.sheet_to_json(
-        workbook.Sheets[workbook_sheets[0]]
+        workbook.Sheets[workbook_sheets[0]],{defval:''}
       );
       intialFileSize = calculateFileSize(excelfile.buffer);
       const { isValid, headerMap } = await validateExcel(
@@ -49,11 +49,11 @@ async function processExcellSheet(req, res) {
     } else {
       workbook_response = [
         {
-          "Application: Application ID": `App ID-${Date.now()}`,
-          "Street Address 1": university,
-          "Order Type": orderType,
+          "application id": `App ID-${Date.now()}`,
+          "street address 1": university,
+          "orderType": orderType,
           items: items,
-          "AWB NO":''
+          "awb no":''
         },
       ];
     }

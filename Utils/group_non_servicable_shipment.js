@@ -15,7 +15,7 @@ function validatePhoneNumber(phoneNumber, Country) {
       resolve({success:false,message:"Phone number is missing"});
     }
     phoneNumber=phoneNumber?.toString().replace(/\D/g, "");
-    if (phoneNumber?.toString()=="#ERROR!") {
+    if (phoneNumber?.toString()==="#ERROR!") {
       resolve({success:false,message:"Phone number is not valid"});
     }
     callingCodes.forEach((country) => {
@@ -209,4 +209,4 @@ async function shipRocket_consignment_price_calculator(country_code) {
     console.log(error);
   }
 }
-module.exports = move_non_servicable;
+module.exports = {move_non_servicable,validatePhoneNumber};

@@ -3,7 +3,7 @@ const stringSimilarity = require("string-similarity");
 const { findAddress, findByCityAndCountry,updateLocationData } = require("./locationHelper");
 const { createOrder } = require("../Models/orderModel");
 const { getMandatoryFields } = require("./getMandatoryFields");
-const move_non_servicable = require("./group_non_servicable_shipment");
+const {move_non_servicable,validatePhoneNumber} = require("./group_non_servicable_shipment");
 
 const { default: mongoose } = require("mongoose");
 function calculateFileSize(file) {
@@ -52,8 +52,8 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
    
   await Promise.all(
     excelJsonData.map(async (row) => {
-      let validEmail, validNumber, checkValidAddress;
-      row["AWB NO"] = "";
+      let validEmail, validateResponse, checkValidAddress;
+      row["awb no"] = "";
       if (orderType !== "FARE") {
         if (row[headerMap["country"]]?.toLowerCase() !== "india") {
           let address = { isValid: false, state: "Z" };
@@ -74,7 +74,7 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
           row[headerMap["phone number"]]
         );
 
-        validNumber = validatePhoneNumber(row[headerMap["phone number"]]);
+        validateResponse = await validatePhoneNumber(row[headerMap["phone number"]],row[headerMap["country"]]);
 
         validEmail = validateEmail(row[headerMap["email"]]);
 
@@ -88,12 +88,12 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
           headerMap
         );
 
-        row["State"] = checkValidAddress.state;
+        row["state"] = checkValidAddress.state;
       }
 
       if (
         orderType === "FARE" ||
-        (validEmail && validNumber && checkValidAddress.isValid)
+        (validEmail && validateResponse.success && checkValidAddress.isValid)
       ) {
         const order =
           orderType !== "ADMIT/DEPOSIT"
@@ -116,6 +116,7 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
           }
         }
       }
+      row["error status"]=validateResponse?.message;
       invalid.push(row);
       return;
     })
@@ -146,15 +147,6 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
     IndianPost_Delivery: deliveryMapping?.IndianPost_Delivery,
   };
 }
-
-function validatePhoneNumber(phoneNumber) {
-  if (!phoneNumber) {
-    return {success:false,message:"Phone Number does not exist"};
-  }
-  let regex = /^(\+?91[\-\s]?)?[6-9]\d{9}$/;
-  return regex.test(phoneNumber);
-}
-
 function validateEmail(email) {
   const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isValid = pattern.test(email);
@@ -186,7 +178,7 @@ async function findAddressHepler(
     row[headerMap["postal code"]] = newAddress?.postalCode
       ? newAddress.postalCode
       : pincode;
-    row["State"] = newAddress.state;
+    row["state"] = newAddress.state;
     address.isValid = true;
     address.state = newAddress.state;
   }
@@ -201,7 +193,7 @@ async function findAddressHepler(
      {
       await updateLocationData(response.City,response.Country,response.State);
       row[headerMap["country"]]=response.Country;
-      row['State']=response.State;
+      row['state']=response.State;
       address.isValid=true;
       address.state=response.State;
      }
