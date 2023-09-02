@@ -11,6 +11,7 @@ const userCredentialRoute = require("./Routes/userCredentialRoutes");
 const excelRoute = require("./Routes/excelRoutes");
 const deliveryRoute = require("./Routes/deliveryRoutes");
 const feedbackRoute = require("./Routes/feedbackRoutes");
+const contactRoute = require("./Routes/contactUsRoutes");
 
 const adminRoute = require("./Routes/adminRoutes");
 app.use(express.json());
@@ -20,6 +21,7 @@ app.use("/api/v1", excelRoute);
 app.use("/api/v1", deliveryRoute);
 app.use("/api/v1", feedbackRoute);
 app.use("/api/v1", adminRoute);
+app.use("/api/v1", contactRoute);
 const PORT = process.env.PORT;
 app.listen(PORT, async () => {
   console.log(`listening on port ${PORT}`);

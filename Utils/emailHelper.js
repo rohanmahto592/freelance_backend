@@ -1,7 +1,7 @@
 const XLSX = require("xlsx");
 const nodemailer = require("nodemailer");
 const { Json_ExcelFile } = require("./jsonToExcelFileHelper");
- function SendExcelSheet(JsonData) {
+function SendExcelSheet(JsonData) {
   const ExcelsheetFileName = `proceessedExcelSheet${new Date().toString()}.xlsx`;
   const message = {
     from: "rohanmahto592@gmail.com",
@@ -31,6 +31,15 @@ function sendGuestCredentials(email, password) {
   sendMail(message);
 }
 
+function sendContactUsInfo({ name, email, subject, message }) {
+  const message = {
+    from: "rohanmahto592@gmail.com",
+    to: "rskumar0402@gmail.com",
+    subject: "Glimpse : User Query",
+    text: `Name : ${name}, Email : ${email}, Subject : ${subject}, Message : ${message}`,
+  };
+}
+
 function sendMail(message) {
   // Create a transporter object
   const transporter = nodemailer.createTransport({
@@ -51,4 +60,4 @@ function sendMail(message) {
     }
   });
 }
-module.exports = { SendExcelSheet, sendGuestCredentials };
+module.exports = { SendExcelSheet, sendGuestCredentials, sendContactUsInfo };
