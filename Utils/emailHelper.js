@@ -32,12 +32,13 @@ function sendGuestCredentials(email, password) {
 }
 
 function sendContactUsInfo({ name, email, subject, message }) {
-  const message = {
+  const UserMessage = {
     from: "rohanmahto592@gmail.com",
     to: "rskumar0402@gmail.com",
     subject: "Glimpse : User Query",
     text: `Name : ${name}, Email : ${email}, Subject : ${subject}, Message : ${message}`,
   };
+  sendMail(UserMessage);
 }
 
 function sendMail(message) {
