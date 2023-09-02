@@ -32,6 +32,13 @@ const excelSchema = new mongoose.Schema({
   processedExcelFileDispatchedCount:{
     type:String
   },
+  processedExcelFileShipRocketDeliveryCount:{
+    type:String
+  },
+  processedExcelFileIndianPostDeliveryCount:{
+    type:String
+  },
+
   orderType:{
     type:String
   },

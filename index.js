@@ -1,7 +1,6 @@
 const express = require("express");
 const app = express();
 require("dotenv").config();
-const mongoDB = require("./Db/db");
 const cors = require("cors");
 const option = {
   exposedHeaders: "Authorization",
@@ -14,6 +13,7 @@ const feedbackRoute = require("./Routes/feedbackRoutes");
 const contactRoute = require("./Routes/contactUsRoutes");
 
 const adminRoute = require("./Routes/adminRoutes");
+const { connectDB } = require("./Db/db");
 app.use(express.json());
 app.use(cors(option));
 app.use("/api/v1", userCredentialRoute);
@@ -25,5 +25,5 @@ app.use("/api/v1", contactRoute);
 const PORT = process.env.PORT;
 app.listen(PORT, async () => {
   console.log(`listening on port ${PORT}`);
-  await mongoDB();
+  await connectDB();
 });

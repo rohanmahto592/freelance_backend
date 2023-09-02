@@ -2,7 +2,45 @@ const { default: axios } = require("axios");
 const country_alph2_Code = require("./alpha2_code_country");
 const internationalCountryService = require("../Schema/InternationalCountryService");
 const indianPostService = require("../Schema/indianPostSchema");
+const {PhoneNumberUtil}=require("google-libphonenumber");
+const { callingCodes } = require("./callingCodes");
+const { findByCityAndCountry } = require("./locationHelper");
 
+function validatePhoneNumber(phoneNumber, Country) {
+  return new Promise((resolve) => {
+   
+    let code;
+    let value;
+    if (!phoneNumber) {
+      resolve({success:false,message:"Phone number is missing"});
+    }
+    phoneNumber=phoneNumber?.toString().replace(/\D/g, "");
+    if (phoneNumber?.toString()==="#ERROR!") {
+      resolve({success:false,message:"Phone number is not valid"});
+    }
+    callingCodes.forEach((country) => {
+      if (country?.country?.toLowerCase().trim() === Country?.toLowerCase().trim()) {
+        code = country.code;
+        value=country.value;
+      }
+    });
+    try {
+      if(code)
+      {
+      const phoneUtil = PhoneNumberUtil.getInstance();
+      const isValid=phoneUtil.isValidNumberForRegion(phoneUtil.parse(phoneNumber, code), code);
+      resolve(isValid?{success:true}:{success:false,message:'Invalid phone number'});
+      }
+      else
+      {
+        resolve({success:false,message:"No such mapping found for a given country. Check for correct country name"})
+      }
+    } catch (error) {
+     
+      resolve({success:false,message:error});
+    }
+  });
+}
 async function checkIfCountryExsistsInDB(
   getInternationalServiceDetails,
   countryName
@@ -13,7 +51,7 @@ async function checkIfCountryExsistsInDB(
     shipment_service: "",
   };
   getInternationalServiceDetails?.map((item) => {
-    if (item.country_name?.toLowerCase() == countryName.toLowerCase()) {
+    if (item.country_name?.toLowerCase() == countryName?.toLowerCase()) {
       response.isTrue = true;
       response.consignment_amount = item.amount;
       response.shipment_service = item.shipment_service;
@@ -21,7 +59,8 @@ async function checkIfCountryExsistsInDB(
   });
   return response;
 }
-async function move_non_sericable(non_servicable,headerMap) {
+
+async function move_non_servicable(non_servicable,headerMap,invalid) {
   const getInternationalServiceDetails =
     await internationalCountryService.find();
   const IndianPostCountriesPrice = await indianPostService.find();
@@ -30,7 +69,17 @@ async function move_non_sericable(non_servicable,headerMap) {
     let ShipRocket_delivery = [];
     let IndianPost_delivery = [];
     for (let i = 0; i < non_servicable.length; i++) {
-      const item = non_servicable[i];
+      let item = non_servicable[i];
+      let response1=await findByCityAndCountry(item[headerMap["city"]],item[headerMap["country"]]);
+      if(response1.success)
+      {
+        item[headerMap["city"]]=response1.City;
+        item[headerMap["country"]]=response1.Country;
+      }
+      let response2= await validatePhoneNumber(item[headerMap["phone number"]],item[headerMap["country"]]);
+      if(response2.success)
+      {
+      
       const { isTrue, consignment_amount, shipment_service } =
         await checkIfCountryExsistsInDB(
           getInternationalServiceDetails,
@@ -47,7 +96,7 @@ async function move_non_sericable(non_servicable,headerMap) {
       } else {
         let country_info = country_alph2_Code.find(
           (country) =>
-            country.Name.toLowerCase() ==  item[headerMap["country"]].toLowerCase()
+            country?.Name?.toLowerCase() ==  item[headerMap["country"]]?.toLowerCase()
         );
         let shipRocketAmount = parseInt(
           await shipRocket_consignment_price_calculator(country_info?.Code)
@@ -55,7 +104,7 @@ async function move_non_sericable(non_servicable,headerMap) {
 
         let indianPostAmount = parseInt(
           await indianPost_consignment_price(
-            country_info.Name,
+            country_info?.Name,
             IndianPostCountriesPrice
           )
         );
@@ -63,7 +112,7 @@ async function move_non_sericable(non_servicable,headerMap) {
           if (shipRocketAmount <= 2100 && indianPostAmount <= 2100) {
             if (shipRocketAmount >= indianPostAmount) {
               IndianPost_delivery.push(item);
-              const response =
+            
                 await internationalCountryService.findOneAndUpdate(
                   { country_name:  item[headerMap["country"]] },
                   {
@@ -75,7 +124,6 @@ async function move_non_sericable(non_servicable,headerMap) {
                 );
             } else {
               ShipRocket_delivery.push(item);
-              const response =
                 await internationalCountryService.findOneAndUpdate(
                   { country_name: item[headerMap["country"]] },
                   {
@@ -89,7 +137,7 @@ async function move_non_sericable(non_servicable,headerMap) {
           }
         } else {
           ShipRocket_delivery.push(item);
-          const response = await internationalCountryService.findOneAndUpdate(
+          await internationalCountryService.findOneAndUpdate(
             { country_name:  item[headerMap["country"]] },
             {
               country_name:  item[headerMap["country"]],
@@ -103,7 +151,14 @@ async function move_non_sericable(non_servicable,headerMap) {
         i--;
       }
     }
-    //console.log(ShipRocket_delivery);
+    else
+    {
+      item["error status"]=response2.message;
+      invalid.push(item);
+      non_servicable.splice(i, 1);
+     i--;
+    }
+    }
     resolve({
       non_servicable: non_servicable,
       ShipRocket_delivery: ShipRocket_delivery,
@@ -118,7 +173,7 @@ async function indianPost_consignment_price(
 ) {
   return new Promise((resolve, reject) => {
     IndianPostCountriesPrice.forEach((country) => {
-      if (country?.country_name?.toLowerCase() === countryName.toLowerCase()) {
+      if (country?.country_name?.toLowerCase() === countryName?.toLowerCase()) {
         resolve(country.price);
       }
     });
@@ -154,4 +209,4 @@ async function shipRocket_consignment_price_calculator(country_code) {
     console.log(error);
   }
 }
-module.exports = move_non_sericable;
+module.exports = {move_non_servicable,validatePhoneNumber};

@@ -1,18 +1,19 @@
-
 const XLSX = require("xlsx");
- function Json_ExcelFile(JsonData) {
-  const dispatched = JsonData.dispatched;
-  const invalid = JsonData?.invalid;
-  const non_servicable = JsonData?.non_servicable;
-  const ShipRocket_delivery=JsonData?.ShipRocket_Delivery;
-  const IndianPost_delivery=JsonData?.IndianPost_Delivery;
-  const duplicates = JsonData?.duplicates;
+const rearrangeObjectKeysAlphabetically = require("./rearrangeExcelAlphabeticalOrder");
+function Json_ExcelFile(JsonData) {
+  let {dispatched,invalid,non_servicable,ShipRocket_Delivery,IndianPost_Delivery,duplicates}=JsonData;
+  dispatched=dispatched.map(obj => rearrangeObjectKeysAlphabetically(obj));
+  invalid=invalid?.map(obj => rearrangeObjectKeysAlphabetically(obj));
+  non_servicable=non_servicable?.map(obj => rearrangeObjectKeysAlphabetically(obj));
+  duplicates=duplicates?.map(obj => rearrangeObjectKeysAlphabetically(obj));
+ ShipRocket_Delivery= ShipRocket_Delivery?.map(obj => rearrangeObjectKeysAlphabetically(obj));
+ IndianPost_Delivery= IndianPost_Delivery?.map(obj => rearrangeObjectKeysAlphabetically(obj));
   const sheet1 = XLSX.utils.json_to_sheet(dispatched);
   const sheet2 = XLSX.utils.json_to_sheet(invalid);
   const sheet3 = XLSX.utils.json_to_sheet(non_servicable);
   const sheet4 = XLSX.utils.json_to_sheet(duplicates);
-  const sheet5=XLSX.utils.json_to_sheet(ShipRocket_delivery);
-  const sheet6=XLSX.utils.json_to_sheet(IndianPost_delivery);
+  const sheet5 = XLSX.utils.json_to_sheet(ShipRocket_Delivery);
+  const sheet6 = XLSX.utils.json_to_sheet(IndianPost_Delivery);
   const workbook = XLSX.utils.book_new();
   // Add the worksheets to the workbook
   XLSX.utils.book_append_sheet(workbook, sheet1, "Dispatched");

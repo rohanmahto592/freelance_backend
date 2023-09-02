@@ -16,10 +16,11 @@ const {
   deleteItem,
   addCountry,
   getCountry,
-  addIndianPost,
-  getExcelSheets,
-  getDispatchedOrders,
-  deleteNonSericableCountry: deleteCountry,
+ addIndianPost,
+ getExcelSheets,
+ getDispatchedOrders,
+ getNonAdminUsers,
+ deleteCountry
 } = require("../Models/adminModel");
 
 async function allUsers(req, res) {
@@ -40,9 +41,7 @@ async function deleteUser(req, res) {
 async function addItem(req, res) {
   const Image = req?.file?.buffer;
   const formData = JSON.parse(req.body.item);
-  const image = Image
-    ? `data:image/jpeg;base64,${Image.toString("base64")}`
-    : "";
+  const image = Image? `data:image/jpeg;base64,${Image.toString("base64")}`:"";
   const response = await addItems({ ...formData, image });
   res.send(response);
 }
@@ -91,44 +90,51 @@ async function fetchExcelHeadersController(req, res) {
   const response = await fetchExcelHeaders(orderType);
   res.send(response);
 }
-async function deleteCollege(req, res) {
-  const { id } = req.query;
-  const response = await deleteColleById(id);
+async function deleteCollege(req,res){
+  const {id}=req.query;
+  const response=await deleteColleById(id);
   res.send(response);
 }
-async function deleteCurrentItem(req, res) {
-  const { id } = req.query;
-  const response = await deleteItem(id);
+async function deleteCurrentItem(req,res){
+  const {id}=req.query
+  const response=await deleteItem(id);
   res.send(response);
 }
-async function addNonServicableCountries(req, res) {
-  const { country } = req.body;
-  const response = await addCountry(country);
+async function addNonServicableCountries(req,res){
+  const {country}=req.body;
+  const response=await addCountry(country);
   res.send(response);
 }
-async function getInvalidCountries(req, res) {
-  const response = await getCountry();
+async function getInvalidCountries(req,res){
+  const response=await getCountry();
   res.send(response);
 }
-async function deleteNonServicableCountries(req, res) {
-  const { id } = req.query;
-  const response = await deleteCountry(id);
+async function addIndianPostCountryPrice(req,res){
+  const data=req.body;
+  const response=await addIndianPost(data);
+  res.send(response);
+
+}
+async function getExcelSheetInfo(req,res){
+  const {id}=req.query;
+  const response=await getExcelSheets(id);
   res.send(response);
 }
-async function addIndianPostCountryPrice(req, res) {
-  const data = req.body;
-  const response = await addIndianPost(data);
+async function getOrders(req,res){
+  const {id}=req.query;
+  const response=await getDispatchedOrders(id);
   res.send(response);
 }
-async function getExcelSheetInfo(req, res) {
-  const response = await getExcelSheets();
-  res.send(response);
+async function fetchAllUsers(req,res)
+{
+  const response=await getNonAdminUsers();
+  res.send(response)
 }
-async function getOrders(req, res) {
-  const { id } = req.query;
-  const response = await getDispatchedOrders(id);
-  res.send(response);
-}
+async function deleteNonServicableCountries(req,res){
+  const {id}=req.query;
+  const response=await deleteCountry(id);
+  res.send(response)
+} 
 module.exports = {
   deleteCollege,
   allUsers,
@@ -150,5 +156,6 @@ module.exports = {
   addIndianPostCountryPrice,
   getExcelSheetInfo,
   getOrders,
-  deleteNonServicableCountries,
+  fetchAllUsers,
+  deleteNonServicableCountries
 };

@@ -1,14 +1,15 @@
 const { default: axios } = require("axios");
 const stringSimilarity = require("string-similarity");
-const { findAddress } = require("./locationHelper");
+const { findAddress, findByCityAndCountry,updateLocationData } = require("./locationHelper");
 const { createOrder } = require("../Models/orderModel");
 const { getMandatoryFields } = require("./getMandatoryFields");
-const move_non_sericable = require("./group_non_servicable_shipment");
+const {move_non_servicable,validatePhoneNumber} = require("./group_non_servicable_shipment");
+
+const { default: mongoose } = require("mongoose");
 function calculateFileSize(file) {
   return file.length;
 }
 function checkMandatoryFields(headerArray, mandatoryFields) {
-  //console.log(mandatoryFields)
   const regexFields = mandatoryFields.map(
     (field) => new RegExp(field.toLowerCase(), "i")
   );
@@ -45,10 +46,14 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
   let non_servicable = [];
   let dispatched = [];
   let duplicates = [];
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try{
+   
   await Promise.all(
     excelJsonData.map(async (row) => {
-      let validEmail, validNumber, checkValidAddress;
-      row["AWB NO"] = "";
+      let validEmail, validateResponse, checkValidAddress;
+      row["awb no"] = "";
       if (orderType !== "FARE") {
         if (row[headerMap["country"]]?.toLowerCase() !== "india") {
           let address = { isValid: false, state: "Z" };
@@ -69,7 +74,7 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
           row[headerMap["phone number"]]
         );
 
-        validNumber = validatePhoneNumber(row[headerMap["phone number"]]);
+        validateResponse = await validatePhoneNumber(row[headerMap["phone number"]],row[headerMap["country"]]);
 
         validEmail = validateEmail(row[headerMap["email"]]);
 
@@ -83,12 +88,12 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
           headerMap
         );
 
-        row["State"] = checkValidAddress.state;
+        row["state"] = checkValidAddress.state;
       }
 
       if (
         orderType === "FARE" ||
-        (validEmail && validNumber && checkValidAddress.isValid)
+        (validEmail && validateResponse.success && checkValidAddress.isValid)
       ) {
         const order =
           orderType !== "ADMIT/DEPOSIT"
@@ -111,11 +116,21 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
           }
         }
       }
+      row["error status"]=validateResponse?.message;
       invalid.push(row);
       return;
     })
-  );
-  const response = await move_non_sericable(non_servicable, headerMap);
+   
+  )
+  await session.commitTransaction();
+  }catch(err)
+  {
+    await session.abortTransaction();
+  }finally
+  {
+    await session.endSession();
+  }
+  const response = await move_non_servicable(non_servicable, headerMap,invalid);
 
   const deliveryMapping = await createOrderInternational(
     response,
@@ -132,15 +147,6 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
     IndianPost_Delivery: deliveryMapping?.IndianPost_Delivery,
   };
 }
-
-function validatePhoneNumber(phoneNumber) {
-  if (!phoneNumber) {
-    return false;
-  }
-  let regex = /^(\+?91[\-\s]?)?[6-9]\d{9}$/;
-  return regex.test(phoneNumber);
-}
-
 function validateEmail(email) {
   const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isValid = pattern.test(email);
@@ -167,14 +173,31 @@ async function findAddressHepler(
   process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
   const location = await findAddress(country, pincode, city, street1, street2);
   let { newAddress, success } = location;
-  if (success && newAddress.country.toLowerCase() === country.toLowerCase()) {
+  if (success && newAddress?.country?.toLowerCase() === country?.toLowerCase()) {
     row[headerMap["country"]] = newAddress.country;
     row[headerMap["postal code"]] = newAddress?.postalCode
       ? newAddress.postalCode
       : pincode;
-    row["State"] = newAddress.state;
+    row["state"] = newAddress.state;
     address.isValid = true;
     address.state = newAddress.state;
+  }
+  else
+  {
+    
+    if(city || country)
+    {
+      
+     const response=  await findByCityAndCountry(city,country)
+     if(response.success)
+     {
+      await updateLocationData(response.City,response.Country,response.State);
+      row[headerMap["country"]]=response.Country;
+      row['state']=response.State;
+      address.isValid=true;
+      address.state=response.State;
+     }
+    } 
   }
   return address;
 }
@@ -258,7 +281,7 @@ async function validateAddress(
         address.state = postOffice.State;
         return address;
       } else if (
-        minimumDistance(postOffice.Name.toLowerCase(), city.toLowerCase())
+        minimumDistance(postOffice?.Name?.toLowerCase(), city?.toLowerCase())
       ) {
         row[headerMap.city] = postOffice.Name;
         address.isValid = true;

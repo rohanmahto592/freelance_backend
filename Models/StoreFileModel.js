@@ -16,6 +16,8 @@ async function storeFile(
     (buffer.length / (1024 * 1024)).toPrecision(4) + " MB";
   let intialExcelFileCount = intialFileJosn.length;
   let processedExcelFileDispatchedCount = processedFileJson.dispatched.length;
+  let processedExcelFileShipRocketDeliveryCount=processedFileJson.ShipRocket_Delivery.length;
+  let processedExcelFileIndianPostDeliveryCount=processedFileJson.IndianPost_Delivery.length;
   const orderType = body.orderType;
   const fileData = {
     initialExcelFile: JSON.stringify(intialFileJosn),
@@ -28,6 +30,8 @@ async function storeFile(
     processedExcelFileDispatchedCount,
     docFile,
     orderType,
+    processedExcelFileIndianPostDeliveryCount,
+    processedExcelFileShipRocketDeliveryCount
   };
   if (body.university) {
     fileData.university = body.university;
