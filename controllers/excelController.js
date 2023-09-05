@@ -17,12 +17,14 @@ async function processExcellSheet(req, res) {
     const excelfile = req.files[0];
     const docfile = req.files[1];
     const { orderType, university, items } = req.body;
+
     let workbook_response, excelHeaderMap, docFile, intialFileSize;
     if (orderType !== "FARE") {
       const workbook = xlsx.read(excelfile.buffer, { type: "buffer" });
       let workbook_sheets = workbook.SheetNames;
       workbook_response = xlsx.utils.sheet_to_json(
-        workbook.Sheets[workbook_sheets[0]],{defval:''}
+        workbook.Sheets[workbook_sheets[0]],
+        { defval: "" }
       );
       intialFileSize = calculateFileSize(excelfile.buffer);
       const { isValid, headerMap } = await validateExcel(
@@ -47,15 +49,20 @@ async function processExcellSheet(req, res) {
         return;
       }
     } else {
-      workbook_response = [
-        {
-          "application id": `App ID-${Date.now()}`,
-          "street address 1": university,
-          "orderType": orderType,
-          items: items,
-          "awb no":''
-        },
-      ];
+      workbook_response = [];
+      const jsonItems = JSON.parse(items);
+
+      Object.keys(jsonItems).map((uni, index) => {
+        const itemsStringified = jsonItems[uni].join(" ,");
+
+        workbook_response.push({
+          "application id": `App ID-${Date.now()}-${index}`,
+          "street address 1": uni,
+          orderType: orderType,
+          items: itemsStringified,
+          "awb no": "",
+        });
+      });
     }
 
     const JsonWorkbookData = await prepareWorkbook(
