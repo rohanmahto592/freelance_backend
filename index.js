@@ -5,6 +5,7 @@ const cors = require("cors");
 const option = {
   exposedHeaders: "Authorization",
 };
+const cron = require("node-cron");
 
 const userCredentialRoute = require("./Routes/userCredentialRoutes");
 const excelRoute = require("./Routes/excelRoutes");
@@ -14,6 +15,7 @@ const contactRoute = require("./Routes/contactUsRoutes");
 
 const adminRoute = require("./Routes/adminRoutes");
 const { connectDB } = require("./Db/db");
+const { UpdateOrderStatus } = require("./Utils/UpdateOrderModelHelper");
 app.use(express.json());
 app.use(cors(option));
 app.use("/api/v1", userCredentialRoute);
@@ -22,6 +24,18 @@ app.use("/api/v1", deliveryRoute);
 app.use("/api/v1", feedbackRoute);
 app.use("/api/v1", adminRoute);
 app.use("/api/v1", contactRoute);
+
+cron.schedule(
+  "0 1 * * *",
+  () => {
+    UpdateOrderStatus();
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Kolkata",
+  }
+);
+
 const PORT = process.env.PORT;
 app.listen(PORT, async () => {
   console.log(`listening on port ${PORT}`);

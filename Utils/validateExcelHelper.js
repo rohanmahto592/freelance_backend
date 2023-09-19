@@ -1,9 +1,16 @@
 const { default: axios } = require("axios");
 const stringSimilarity = require("string-similarity");
-const { findAddress, findByCityAndCountry,updateLocationData } = require("./locationHelper");
+const {
+  findAddress,
+  findByCityAndCountry,
+  updateLocationData,
+} = require("./locationHelper");
 const { createOrder } = require("../Models/orderModel");
 const { getMandatoryFields } = require("./getMandatoryFields");
-const {move_non_servicable,validatePhoneNumber} = require("./group_non_servicable_shipment");
+const {
+  move_non_servicable,
+  validatePhoneNumber,
+} = require("./group_non_servicable_shipment");
 
 const { default: mongoose } = require("mongoose");
 function calculateFileSize(file) {
@@ -48,89 +55,93 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
   let duplicates = [];
   const session = await mongoose.startSession();
   session.startTransaction();
-  try{
-   
-  await Promise.all(
-    excelJsonData.map(async (row) => {
-      let validEmail, validateResponse, checkValidAddress;
-      row["awb no"] = "";
-      if (orderType !== "FARE") {
-        if (row[headerMap["country"]]?.toLowerCase() !== "india") {
-          let address = { isValid: false, state: "Z" };
-          address = await findAddressHepler(
+  try {
+    await Promise.all(
+      excelJsonData.map(async (row) => {
+        let validEmail, validateResponse, checkValidAddress;
+        row["awb no"] = "";
+        row["country courier code"] = "";
+        if (orderType !== "FARE") {
+          if (row[headerMap["country"]]?.toLowerCase() !== "india") {
+            let address = { isValid: false, state: "Z" };
+            address = await findAddressHepler(
+              row[headerMap["country"]],
+              row[headerMap["postal code"]],
+              row[headerMap["city"]],
+              row[headerMap["street address 1"]],
+              row[headerMap["street address 2"]],
+              row,
+              headerMap,
+              address
+            );
+            non_servicable.push(row);
+            return;
+          }
+          row[headerMap["phone number"]] = formatPhoneNumber(
+            row[headerMap["phone number"]]
+          );
+
+          validateResponse = await validatePhoneNumber(
+            row[headerMap["phone number"]],
+            row[headerMap["country"]]
+          );
+
+          validEmail = validateEmail(row[headerMap["email"]]);
+
+          checkValidAddress = await validateAddress(
             row[headerMap["country"]],
             row[headerMap["postal code"]],
             row[headerMap["city"]],
             row[headerMap["street address 1"]],
             row[headerMap["street address 2"]],
             row,
-            headerMap,
-            address
+            headerMap
           );
-          non_servicable.push(row);
-          return;
+
+          row["state"] = checkValidAddress.state;
         }
-        row[headerMap["phone number"]] = formatPhoneNumber(
-          row[headerMap["phone number"]]
-        );
 
-        validateResponse = await validatePhoneNumber(row[headerMap["phone number"]],row[headerMap["country"]]);
-
-        validEmail = validateEmail(row[headerMap["email"]]);
-
-        checkValidAddress = await validateAddress(
-          row[headerMap["country"]],
-          row[headerMap["postal code"]],
-          row[headerMap["city"]],
-          row[headerMap["street address 1"]],
-          row[headerMap["street address 2"]],
-          row,
-          headerMap
-        );
-
-        row["state"] = checkValidAddress.state;
-      }
-
-      if (
-        orderType === "FARE" ||
-        (validEmail && validateResponse.success && checkValidAddress.isValid)
-      ) {
-        const order =
-          orderType !== "ADMIT/DEPOSIT"
-            ? orderType
-            : row[headerMap["admissions status"]].toUpperCase();
-        const newOrder = await createOrder({
-          applicationId:
-            orderType === "FARE"
-              ? row["application id"]
-              : row[headerMap["application id"]],
-          orderType: order,
-        });
-        if (newOrder.success) {
-          dispatched.push(row);
-          return;
-        } else {
-          if (newOrder.isDuplicate) {
-            duplicates.push(row);
+        if (
+          orderType === "FARE" ||
+          (validEmail && validateResponse.success && checkValidAddress.isValid)
+        ) {
+          const order =
+            orderType !== "ADMIT/DEPOSIT"
+              ? orderType
+              : row[headerMap["admissions status"]].toUpperCase();
+          const newOrder = await createOrder({
+            applicationId:
+              orderType === "FARE"
+                ? row["application id"]
+                : row[headerMap["application id"]],
+            orderType: order,
+          });
+          if (newOrder.success) {
+            dispatched.push(row);
             return;
+          } else {
+            if (newOrder.isDuplicate) {
+              duplicates.push(row);
+              return;
+            }
           }
         }
-      }
-      row["error status"]=validateResponse?.message;
-      invalid.push(row);
-      return;
-    })
-   
-  )
-  await session.commitTransaction();
-  }catch(err)
-  {
+        row["error status"] = validateResponse?.message;
+        invalid.push(row);
+        return;
+      })
+    );
+    await session.commitTransaction();
+  } catch (err) {
     await session.abortTransaction();
-  }finally
-  {
+  } finally {
     await session.endSession();
   }
-  const response = await move_non_servicable(non_servicable, headerMap,invalid);
+  const response = await move_non_servicable(
+    non_servicable,
+    headerMap,
+    invalid
+  );
 
   const deliveryMapping = await createOrderInternational(
     response,
@@ -173,7 +184,10 @@ async function findAddressHepler(
   process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
   const location = await findAddress(country, pincode, city, street1, street2);
   let { newAddress, success } = location;
-  if (success && newAddress?.country?.toLowerCase() === country?.toLowerCase()) {
+  if (
+    success &&
+    newAddress?.country?.toLowerCase() === country?.toLowerCase()
+  ) {
     row[headerMap["country"]] = newAddress.country;
     row[headerMap["postal code"]] = newAddress?.postalCode
       ? newAddress.postalCode
@@ -181,23 +195,21 @@ async function findAddressHepler(
     row["state"] = newAddress.state;
     address.isValid = true;
     address.state = newAddress.state;
-  }
-  else
-  {
-    
-    if(city || country)
-    {
-      
-     const response=  await findByCityAndCountry(city,country)
-     if(response.success)
-     {
-      await updateLocationData(response.City,response.Country,response.State);
-      row[headerMap["country"]]=response.Country;
-      row['state']=response.State;
-      address.isValid=true;
-      address.state=response.State;
-     }
-    } 
+  } else {
+    if (city || country) {
+      const response = await findByCityAndCountry(city, country);
+      if (response.success) {
+        await updateLocationData(
+          response.City,
+          response.Country,
+          response.State
+        );
+        row[headerMap["country"]] = response.Country;
+        row["state"] = response.State;
+        address.isValid = true;
+        address.state = response.State;
+      }
+    }
   }
   return address;
 }

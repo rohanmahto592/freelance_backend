@@ -61,6 +61,7 @@ async function processExcellSheet(req, res) {
           orderType: orderType,
           items: itemsStringified,
           "awb no": "",
+          "country courier code": "",
         });
       });
     }
