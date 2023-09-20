@@ -36,12 +36,17 @@ async function UpdateOrderStatus() {
   const OrderData = await Order.find({ trackingId: { $exists: true } }).select(
     "trackingId courierCode"
   );
-  let batches = { SMC: [], IPC: [], SRC: [] },
+  let batches = { SMC: [], IPC: [], SRC: [],PFC:[] },
     currentSRC = [],
     SRCcount = 0;
 
   OrderData.map(({ trackingId, courierCode }) => {
     switch (courierCode) {
+      case "PFC":
+        if (trackingId !== "") {
+          batches[courierCode].push(trackingId.trim());
+        }
+        break;
       case "SMC":
         if (trackingId !== "") {
           batches[courierCode].push(trackingId.trim());
