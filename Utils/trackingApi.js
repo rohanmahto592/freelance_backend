@@ -15,6 +15,10 @@ async function trackSRC(trackingIds) {
         awbs: trackingIds,
       }),
     });
+    if(data.data?.tracking_data?.error) {
+      console.log(data.data);
+      return { success: false };
+    }
     return { success: true, data };
   } catch (e) {
     console.log("Error occured ", e.message);

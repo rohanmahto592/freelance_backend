@@ -79,13 +79,12 @@ async function UpdateOrderStatus() {
   if (SRCcount > 0) {
     batches["SRC"].push(currentSRC);
   }
-
   batches["SRC"].map((batch) => {
     trackSRC(batch).then((trackingData) => {
       if (trackingData.success) {
         batch.map((id) => {
           const status =
-            trackingData[id]["tracking_data"]["shipment_track"][0][
+            trackingData["data"]["data"][id]["tracking_data"]["shipment_track"][0][
               "current_status"
             ] || "PENDING";
           Order.findOneAndUpdate(
