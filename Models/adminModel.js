@@ -3,9 +3,9 @@ const additem = require("../Schema/Item");
 const Stock = require("../Schema/Stock");
 const College = require("../Schema/collegeSchema");
 const ExcelHeader = require("../Schema/excelHeadersSchema");
-const NonServicableCountry=require("../Schema/nonServicableCountires")
-const indianPostService=require("../Schema/indianPostSchema")
-const excelFile=require("../Schema/fileSchema");
+const NonServicableCountry = require("../Schema/nonServicableCountires");
+const indianPostService = require("../Schema/indianPostSchema");
+const excelFile = require("../Schema/fileSchema");
 const Order = require("../Schema/OrderSchema");
 const { default: mongoose } = require("mongoose");
 async function getAllUsers(isVerified) {
@@ -86,11 +86,17 @@ async function fetchItems() {
   }
 }
 async function updatecartItem(data) {
-  const { id, quantity } = data;
+  const { id, quantity, type = "update" } = data;
+  console.log(id, type);
   try {
-    const item = await Stock.findOne({_id:id});
+    const item = await Stock.findOne({ _id: id });
     if (item) {
-      item.quantity = quantity;
+      if (type === "subtract") {
+        item.quantity = item.quantity - quantity;
+        console.log(item.quantity);
+      } else {
+        item.quantity = quantity;
+      }
       await item.save();
       return { success: true, message: "Stock updated successfully" };
     }
@@ -121,7 +127,9 @@ async function addStockItem(stockData) {
       university: university,
     });
     if (item) {
-      item.quantity = (parseInt(item.quantity?item.quantity:0) + parseInt(quantity)).toString();
+      item.quantity = (
+        parseInt(item.quantity ? item.quantity : 0) + parseInt(quantity)
+      ).toString();
       await item.save();
       return { success: true, message: "Stock updated successfully" };
     }
@@ -185,110 +193,117 @@ async function fetchExcelHeaders(orderType) {
     return { success: false, message: "internal server error" };
   }
 }
-async function deleteColleById(id){
-  try{
-    const response=await College.findByIdAndDelete(id);
+async function deleteColleById(id) {
+  try {
+    const response = await College.findByIdAndDelete(id);
     return { success: true, message: "college deleted successfully" };
-  }catch(err)
-  {
-    return { success: false, message: "failed to delete the college,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message: "failed to delete the college,try again after sometime",
+    };
   }
 }
-async function deleteItem(id){
-  try{
-    const response=await Stock.findByIdAndDelete(id);
+async function deleteItem(id) {
+  try {
+    const response = await Stock.findByIdAndDelete(id);
     return { success: true, message: "Item deleted successfully" };
-  }catch(err)
-  {
-    return { success: false, message: "failed to delete the item,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message: "failed to delete the item,try again after sometime",
+    };
   }
 }
-async function addCountry(country)
-{
-  try{
-    const response= new NonServicableCountry({name:country});
-    await response.save()
+async function addCountry(country) {
+  try {
+    const response = new NonServicableCountry({ name: country });
+    await response.save();
     return { success: true, message: "country added successfully" };
-  }catch(err)
-  {
-    return { success: false, message: "failed to add the country,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message: "failed to add the country,try again after sometime",
+    };
   }
 }
-async function getCountry(){
-  try{
-    
-    const response= await NonServicableCountry.find();
+async function getCountry() {
+  try {
+    const response = await NonServicableCountry.find();
     return { success: true, message: response };
-  }catch(err)
-  {
-    return { success: false, message: "failed to fetch the country,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message: "failed to fetch the country,try again after sometime",
+    };
   }
 }
-async function addIndianPost(data)
-{
-  try{
-    
-    const response= new  indianPostService(data);
+async function addIndianPost(data) {
+  try {
+    const response = new indianPostService(data);
     await response.save();
     return { success: true, message: response };
-  }catch(err)
-  {
-    return { success: false, message: "failed to add international country consignment details,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message:
+        "failed to add international country consignment details,try again after sometime",
+    };
   }
 }
-async function getExcelSheets(id)
-{
-  
-  try{
-   
-    const response= await excelFile.find({"userRef":new mongoose.Types.ObjectId(id)}).select('_id userRef name orderType createdAt');
+async function getExcelSheets(id) {
+  try {
+    const response = await excelFile
+      .find({ userRef: new mongoose.Types.ObjectId(id) })
+      .select("_id userRef name orderType createdAt");
     return { success: true, message: response };
-    
-
-  }catch(err)
-  {
+  } catch (err) {
     return { success: false, message: "failed to fetch excelsheet Details" };
   }
 }
-async function getDispatchedOrders(id)
-{
-  try{
-    const response= await Order.find({excelSheetRef:id});
-    if(response?.length>0)
-    {
-    return { success: true, message: response,isOne:false };
-    }
-    else
-    {
+async function getDispatchedOrders(id) {
+  try {
+    const response = await Order.find({ excelSheetRef: id });
+    if (response?.length > 0) {
+      return { success: true, message: response, isOne: false };
+    } else {
       //console.log(id)
-      const response=await excelFile.find({"_id":new mongoose.Types.ObjectId(id)}).select('processedExcelFile');
-      const {dispatched,ShipRocket_Delivery,IndianPost_Delivery}=JSON.parse(response[0]?.processedExcelFile);
+      const response = await excelFile
+        .find({ _id: new mongoose.Types.ObjectId(id) })
+        .select("processedExcelFile");
+      const { dispatched, ShipRocket_Delivery, IndianPost_Delivery } =
+        JSON.parse(response[0]?.processedExcelFile);
       // console.log("shiprocket",ShipRocket_Delivery.length,IndianPost_Delivery.length)
-      const orders=[...dispatched,...ShipRocket_Delivery,...IndianPost_Delivery];
-      return { success: true, message: orders,isOne:true }
-
-
+      const orders = [
+        ...dispatched,
+        ...ShipRocket_Delivery,
+        ...IndianPost_Delivery,
+      ];
+      return { success: true, message: orders, isOne: true };
     }
-  }catch(err)
-  {
-    return { success: false, message: "failed to add international country consignment details,try again after sometime" };
+  } catch (err) {
+    return {
+      success: false,
+      message:
+        "failed to add international country consignment details,try again after sometime",
+    };
   }
 }
-async function getNonAdminUsers()
-{
-  try{
-    const response=await users.find({'isAdmin':false,'isVerified':true}).select('_id firstName lastName email universityName userType');
+async function getNonAdminUsers() {
+  try {
+    const response = await users
+      .find({ isAdmin: false, isVerified: true })
+      .select("_id firstName lastName email universityName userType");
     return { success: true, message: response };
-  }catch(err){
+  } catch (err) {
     return { success: false, message: "failed to fetch users" };
   }
 }
-async function deleteCountry(id)
-{
-  try{
+async function deleteCountry(id) {
+  try {
     await NonServicableCountry.findByIdAndDelete(id);
     return { success: true, message: "deleted Successfully" };
-  }catch(err){
+  } catch (err) {
     return { success: false, message: "failed to delete country" };
   }
 }
@@ -314,5 +329,5 @@ module.exports = {
   getExcelSheets,
   getDispatchedOrders,
   getNonAdminUsers,
-  deleteCountry
+  deleteCountry,
 };

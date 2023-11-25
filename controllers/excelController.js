@@ -11,6 +11,7 @@ const File = require("../Schema/fileSchema");
 const mongoose = require("mongoose");
 const { generateCredentials } = require("../Utils/credentialHelper");
 const { createDelivery } = require("../Models/deliveryModel");
+const { updatecartItem } = require("../Models/adminModel");
 
 async function processExcellSheet(req, res) {
   try {
@@ -52,18 +53,28 @@ async function processExcellSheet(req, res) {
       workbook_response = [];
       const jsonItems = JSON.parse(items);
 
-      Object.keys(jsonItems).map((uni, index) => {
-        const itemsStringified = jsonItems[uni].join(" ,");
+      const jsonItemKeys = Object.keys(jsonItems);
+
+      for (let i = 0; i < jsonItemKeys.length; i++) {
+        const itemsStringified = jsonItems[jsonItemKeys[i]].join(" ,");
+        const itemVal = jsonItems[jsonItemKeys[i]];
+        for (let j = 0; j < itemVal.length; j++) {
+          await updatecartItem({
+            id: itemVal[j].split("$")[0],
+            quantity: itemVal[j].split("-")[1],
+            type: "subtract",
+          });
+        }
 
         workbook_response.push({
-          "application id": `App ID-${Date.now()}-${index}`,
-          "street address 1": uni,
+          "application id": `App ID-${Date.now()}-${i}`,
+          "street address 1": jsonItemKeys[i],
           orderType: orderType,
           items: itemsStringified,
           "awb no": "",
           "country courier code": "",
         });
-      });
+      }
     }
 
     const JsonWorkbookData = await prepareWorkbook(
