@@ -48,7 +48,12 @@ function formatPhoneNumber(number) {
   return `${number}`.replace(/[-()\s]/g, "");
 }
 
-async function prepareWorkbook(excelJsonData, headerMap, orderType) {
+async function prepareWorkbook(
+  excelJsonData,
+  headerMap,
+  orderType,
+  university
+) {
   let invalid = [];
   let non_servicable = [];
   let dispatched = [];
@@ -61,7 +66,7 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
         let validEmail, validateResponse, checkValidAddress;
         row["awb no"] = "";
         row["country courier code"] = "";
-        if (orderType !== "FARE") {
+        if (orderType === "ADMIT/DEPOSIT") {
           if (row[headerMap["country"]]?.toLowerCase() !== "india") {
             let address = { isValid: false, state: "Z" };
             address = await findAddressHepler(
@@ -99,10 +104,13 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
           );
 
           row["state"] = checkValidAddress.state;
+        } else if (orderType === "DPM") {
+          validEmail = validateEmail(row[headerMap["email"]]);
         }
 
         if (
           orderType === "FARE" ||
+          (orderType === "DPM" && validEmail) ||
           (validEmail && validateResponse.success && checkValidAddress.isValid)
         ) {
           const order =
@@ -113,10 +121,15 @@ async function prepareWorkbook(excelJsonData, headerMap, orderType) {
             applicationId:
               orderType === "FARE"
                 ? row["application id"]
+                : orderType === "DPM"
+                ? `App ID-${Date.now()}-${row["STUDENT_ID"]}`
                 : row[headerMap["application id"]],
             orderType: order,
           });
           if (newOrder.success) {
+            if (orderType === "DPM") {
+              row["university"] = university;
+            }
             dispatched.push(row);
             return;
           } else {

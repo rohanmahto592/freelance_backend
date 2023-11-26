@@ -28,11 +28,6 @@ async function processExcellSheet(req, res) {
         { defval: "" }
       );
       intialFileSize = calculateFileSize(excelfile.buffer);
-      const { isValid, headerMap } = await validateExcel(
-        workbook_response[0],
-        orderType
-      );
-      excelHeaderMap = headerMap;
       if (intialFileSize > 50000000) {
         res.status(400).send({
           success: false,
@@ -40,6 +35,12 @@ async function processExcellSheet(req, res) {
         });
         return;
       }
+      const { isValid, headerMap } = await validateExcel(
+        workbook_response[0],
+        orderType
+      );
+      excelHeaderMap = headerMap;
+
       if (!isValid) {
         res.send({
           success: false,
@@ -59,8 +60,8 @@ async function processExcellSheet(req, res) {
         let itemsStringified = jsonItems[jsonItemKeys[i]].join(",");
         const regex = /\$[a-zA-Z0-9-]+/g;
         const matches = itemsStringified.match(regex);
-        const values = matches.map(match => match.slice(1));
-        itemsStringified = values.join(' , ');
+        const values = matches.map((match) => match.slice(1));
+        itemsStringified = values.join(" , ");
         const itemVal = jsonItems[jsonItemKeys[i]];
         for (let j = 0; j < itemVal.length; j++) {
           await updatecartItem({
@@ -80,11 +81,11 @@ async function processExcellSheet(req, res) {
         });
       }
     }
-
     const JsonWorkbookData = await prepareWorkbook(
       workbook_response,
       excelHeaderMap,
-      orderType
+      orderType,
+      university
     );
 
     if (docfile) {
