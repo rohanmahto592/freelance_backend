@@ -18,7 +18,7 @@ async function processExcellSheet(req, res) {
     const excelfile = req.files[0];
     const docfile = req.files[1];
     const { orderType, university, items } = req.body;
-
+    console.log(req.body);
     let workbook_response, excelHeaderMap, docFile, intialFileSize;
     if (orderType !== "FARE") {
       const workbook = xlsx.read(excelfile.buffer, { type: "buffer" });
@@ -56,7 +56,11 @@ async function processExcellSheet(req, res) {
       const jsonItemKeys = Object.keys(jsonItems);
 
       for (let i = 0; i < jsonItemKeys.length; i++) {
-        const itemsStringified = jsonItems[jsonItemKeys[i]].join(" ,");
+        let itemsStringified = jsonItems[jsonItemKeys[i]].join(",");
+        const regex = /\$[a-zA-Z0-9-]+/g;
+        const matches = itemsStringified.match(regex);
+        const values = matches.map(match => match.slice(1));
+        itemsStringified = values.join(' , ');
         const itemVal = jsonItems[jsonItemKeys[i]];
         for (let j = 0; j < itemVal.length; j++) {
           await updatecartItem({
