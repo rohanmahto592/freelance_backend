@@ -11,8 +11,8 @@ const {
   move_non_servicable,
   validatePhoneNumber,
 } = require("./group_non_servicable_shipment");
-
 const { default: mongoose } = require("mongoose");
+const nonServicableCountry = require("../Schema/nonServicableCountires");
 function calculateFileSize(file) {
   return file.length;
 }
@@ -47,6 +47,10 @@ async function validateExcel(data, orderType) {
 function formatPhoneNumber(number) {
   return `${number}`.replace(/[-()\s]/g, "");
 }
+async function getNonServicableCountryList(){
+  const response=await nonServicableCountry.find({});
+  return response;
+}
 
 async function prepareWorkbook(
   excelJsonData,
@@ -58,6 +62,7 @@ async function prepareWorkbook(
   let non_servicable = [];
   let dispatched = [];
   let duplicates = [];
+  const countryList=await getNonServicableCountryList();
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -66,7 +71,14 @@ async function prepareWorkbook(
         let validEmail, validateResponse, checkValidAddress;
         row["awb no"] = "";
         row["country courier code"] = "";
-        if (orderType === "ADMIT/DEPOSIT") {
+         const isInValidCountry=checkNonServicableCountry( row[headerMap["country"]],countryList)
+          if(isInValidCountry)
+          {
+            row["error status"] ="country comes under the non servicable group.";
+            invalid.push(row);
+            return;
+          }
+       else if (orderType === "ADMIT/DEPOSIT") {
           if (row[headerMap["country"]]?.toLowerCase() !== "india") {
             let address = { isValid: false, state: "Z" };
             address = await findAddressHepler(
@@ -170,6 +182,19 @@ async function prepareWorkbook(
     ShipRocket_Delivery: deliveryMapping?.ShipRocket_Delivery,
     IndianPost_Delivery: deliveryMapping?.IndianPost_Delivery,
   };
+}
+function checkNonServicableCountry(country,countryList){
+  let isInValid=false;
+  for(let index=0;index<countryList.length;index++)
+  {
+    if(countryList[index].name.toLowerCase().trim()===country.toLowerCase().trim())
+    {
+      isInValid=true;
+      break;
+    }
+  }
+  return isInValid;
+
 }
 function validateEmail(email) {
   const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
