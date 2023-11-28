@@ -123,9 +123,7 @@ async function prepareWorkbook(
                 orderType === "FARE"
                   ? row["application id"]
                   : orderType === "DPM"
-                  ? index === 0 || index === 500
-                    ? "dbdddddddddd"
-                    : `App ID-${Date.now()}-${row["STUDENT_ID"]}`
+                  ? `App ID-${Date.now()}-${row["STUDENT_ID"]}`
                   : row[headerMap["application id"]],
               orderType: order,
             },
@@ -139,7 +137,6 @@ async function prepareWorkbook(
             return;
           } else {
             if (newOrder.isDuplicate) {
-              throw "duplicate entry";
               duplicates.push(row);
               return;
             }
@@ -156,7 +153,6 @@ async function prepareWorkbook(
         throw "error occurred";
       }
     }
-    console.log("coming here as well");
     await session.commitTransaction();
   } catch (err) {
     await session.abortTransaction();
