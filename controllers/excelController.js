@@ -19,12 +19,7 @@ async function processExcellSheet(req, res) {
     const excelfile = req.files[0];
     const docfile = req.files[1];
     const { orderType, university, items } = req.body;
-    res.send({
-      success: false,
-      message: "Something went wrong, Please try again later.",
-    });
-    return;
-    console.log(req.body);
+
     let workbook_response, excelHeaderMap, docFile, intialFileSize;
     if (orderType !== "FARE") {
       const workbook = xlsx.read(excelfile.buffer, { type: "buffer" });
