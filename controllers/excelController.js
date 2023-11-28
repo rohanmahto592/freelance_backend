@@ -12,6 +12,7 @@ const mongoose = require("mongoose");
 const { generateCredentials } = require("../Utils/credentialHelper");
 const { createDelivery } = require("../Models/deliveryModel");
 const { updatecartItem } = require("../Models/adminModel");
+const { getMandatoryFields } = require("../Utils/getMandatoryFields");
 
 async function processExcellSheet(req, res) {
   try {
@@ -40,13 +41,15 @@ async function processExcellSheet(req, res) {
         orderType
       );
       excelHeaderMap = headerMap;
-
+      const Headers=await getMandatoryFields(orderType);
       if (!isValid) {
         res.send({
           success: false,
           validation: isValid,
           message:
             "All the required headers are not present,check and reformat your excel file",
+            orderType,
+            Headers
         });
         return;
       }
