@@ -66,8 +66,8 @@ async function prepareWorkbook(
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    await Promise.all(
-      excelJsonData.map(async (row) => {
+    const result = await Promise.allSettled(
+      excelJsonData.map(async (row, index) => {
         let validEmail, validateResponse, checkValidAddress;
         row["awb no"] = "";
         row["country courier code"] = "";
@@ -129,15 +129,18 @@ async function prepareWorkbook(
             orderType !== "ADMIT/DEPOSIT"
               ? orderType
               : row[headerMap["admissions status"]].toUpperCase();
-          const newOrder = await createOrder({
-            applicationId:
-              orderType === "FARE"
-                ? row["application id"]
-                : orderType === "DPM"
-                ? `App ID-${Date.now()}-${row["STUDENT_ID"]}`
-                : row[headerMap["application id"]],
-            orderType: order,
-          });
+          const newOrder = await createOrder(
+            {
+              applicationId:
+                orderType === "FARE"
+                  ? row["application id"]
+                  : orderType === "DPM"
+                  ? `App ID-${Date.now()}-${row["STUDENT_ID"]}`
+                  : row[headerMap["application id"]],
+              orderType: order,
+            },
+            session
+          );
           if (newOrder.success) {
             if (orderType === "DPM") {
               row["university"] = university;
@@ -156,9 +159,17 @@ async function prepareWorkbook(
         return;
       })
     );
+    for (let i = 0; i < result.length; i++) {
+      if (result[i].status === "rejected") {
+        console.log("error occurred");
+        throw "error occurred";
+      }
+    }
     await session.commitTransaction();
   } catch (err) {
     await session.abortTransaction();
+    await session.endSession();
+    return null;
   } finally {
     await session.endSession();
   }
