@@ -61,16 +61,12 @@ async function login(req, res) {
         _id: deliveryUserResponse.user._id,
       });
 
-      return res
-        .set("Authorization", `Bearer ${token}`)
-        .status(200)
-        .send({
-          success: true,
-          message: "Logged In Successfully",
-          userType: "DELIVERY",
-          userId:deliveryUserResponse.user._id
-
-        });
+      return res.set("Authorization", `Bearer ${token}`).status(200).send({
+        success: true,
+        message: "Logged In Successfully",
+        userType: "DELIVERY",
+        userId: deliveryUserResponse.user._id,
+      });
     } else {
       const isPasswordValid = passwordValidation(
         password,
@@ -101,10 +97,14 @@ async function login(req, res) {
           success: true,
           message: "Logged In Successfully",
           userType: userResponse.user.userType,
-          id:userResponse.user._id,
-          universityName:userResponse?.user?.universityName,
-          firstName:userResponse.user.firstName?userResponse.user.firstName:'',
-          lastName:userResponse.user.lastName?userResponse.user.lastName:'',
+          id: userResponse.user._id,
+          universityName: userResponse?.user?.universityName,
+          firstName: userResponse.user.firstName
+            ? userResponse.user.firstName
+            : "",
+          lastName: userResponse.user.lastName
+            ? userResponse.user.lastName
+            : "",
         });
     }
   } catch (err) {

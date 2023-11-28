@@ -19,6 +19,11 @@ async function processExcellSheet(req, res) {
     const excelfile = req.files[0];
     const docfile = req.files[1];
     const { orderType, university, items } = req.body;
+    res.send({
+      success: false,
+      message: "Something went wrong, Please try again later.",
+    });
+    return;
     console.log(req.body);
     let workbook_response, excelHeaderMap, docFile, intialFileSize;
     if (orderType !== "FARE") {
@@ -41,15 +46,16 @@ async function processExcellSheet(req, res) {
         orderType
       );
       excelHeaderMap = headerMap;
-      const Headers=await getMandatoryFields(orderType);
+      const Headers = await getMandatoryFields(orderType);
       if (!isValid) {
         res.send({
           success: false,
           validation: isValid,
+          headerInvalid: true,
           message:
             "All the required headers are not present,check and reformat your excel file",
-            orderType,
-            Headers
+          orderType,
+          Headers,
         });
         return;
       }
@@ -108,9 +114,13 @@ async function processExcellSheet(req, res) {
       const userData = generateCredentials(info._id);
 
       await createDelivery(userData);
+      res.send({ success: true, message: "ExcelSheet Processed Successfully" });
+    } else {
+      res.send({
+        success: false,
+        message: "Something went wrong, Please try again later.",
+      });
     }
-
-    res.send({ success: true, message: "ExcelSheet Processed Successfully" });
   } catch (err) {
     console.log(err);
     res.send({ success: false, message: "ExcelSheet Couldn't be processed" });

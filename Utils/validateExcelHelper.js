@@ -11,8 +11,8 @@ const {
   move_non_servicable,
   validatePhoneNumber,
 } = require("./group_non_servicable_shipment");
+const { mongoose } = require("../Db/db");
 
-const { default: mongoose } = require("mongoose");
 function calculateFileSize(file) {
   return file.length;
 }
@@ -61,8 +61,8 @@ async function prepareWorkbook(
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    await Promise.all(
-      excelJsonData.map(async (row) => {
+    const result = await Promise.allSettled(
+      excelJsonData.map(async (row, index) => {
         let validEmail, validateResponse, checkValidAddress;
         row["awb no"] = "";
         row["country courier code"] = "";
@@ -117,15 +117,20 @@ async function prepareWorkbook(
             orderType !== "ADMIT/DEPOSIT"
               ? orderType
               : row[headerMap["admissions status"]].toUpperCase();
-          const newOrder = await createOrder({
-            applicationId:
-              orderType === "FARE"
-                ? row["application id"]
-                : orderType === "DPM"
-                ? `App ID-${Date.now()}-${row["STUDENT_ID"]}`
-                : row[headerMap["application id"]],
-            orderType: order,
-          });
+          const newOrder = await createOrder(
+            {
+              applicationId:
+                orderType === "FARE"
+                  ? row["application id"]
+                  : orderType === "DPM"
+                  ? index === 0 || index === 500
+                    ? "dbdddddddddd"
+                    : `App ID-${Date.now()}-${row["STUDENT_ID"]}`
+                  : row[headerMap["application id"]],
+              orderType: order,
+            },
+            session
+          );
           if (newOrder.success) {
             if (orderType === "DPM") {
               row["university"] = university;
@@ -134,6 +139,7 @@ async function prepareWorkbook(
             return;
           } else {
             if (newOrder.isDuplicate) {
+              throw "duplicate entry";
               duplicates.push(row);
               return;
             }
@@ -144,9 +150,18 @@ async function prepareWorkbook(
         return;
       })
     );
+    for (let i = 0; i < result.length; i++) {
+      if (result[i].status === "rejected") {
+        console.log("error occurred");
+        throw "error occurred";
+      }
+    }
+    console.log("coming here as well");
     await session.commitTransaction();
   } catch (err) {
     await session.abortTransaction();
+    await session.endSession();
+    return null;
   } finally {
     await session.endSession();
   }
