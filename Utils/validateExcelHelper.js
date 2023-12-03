@@ -13,6 +13,8 @@ const {
 } = require("./group_non_servicable_shipment");
 const { default: mongoose } = require("mongoose");
 const nonServicableCountry = require("../Schema/nonServicableCountires");
+const { Chance } = require("chance");
+const chance = new Chance();
 function calculateFileSize(file) {
   return file.length;
 }
@@ -71,6 +73,8 @@ async function prepareWorkbook(
         let validEmail, validateResponse, checkValidAddress;
         row["awb no"] = "";
         row["country courier code"] = "";
+        
+       if (orderType === "ADMIT/DEPOSIT") {
          const isInValidCountry=checkNonServicableCountry( row[headerMap["country"]],countryList)
           if(isInValidCountry)
           {
@@ -78,7 +82,6 @@ async function prepareWorkbook(
             invalid.push(row);
             return;
           }
-       else if (orderType === "ADMIT/DEPOSIT") {
           if (row[headerMap["country"]]?.toLowerCase() !== "india") {
             let address = { isValid: false, state: "Z" };
             address = await findAddressHepler(
@@ -117,6 +120,14 @@ async function prepareWorkbook(
 
           row["state"] = checkValidAddress.state;
         } else if (orderType === "DPM") {
+          const isInValidCountry=checkNonServicableCountry( row[headerMap["country"]],countryList)
+          if(isInValidCountry)
+          {
+            row["error status"] ="country comes under the non servicable group.";
+            invalid.push(row);
+            return;
+          }
+          row["application id"] = row["STUDENT_ID"]? `App ID-${Date.now()}-${row["STUDENT_ID"]}`:`App ID-${Date.now()}${chance.string({length:12})}`
           validEmail = validateEmail(row[headerMap["email"]]);
         }
 
@@ -135,7 +146,7 @@ async function prepareWorkbook(
                 orderType === "FARE"
                   ? row["application id"]
                   : orderType === "DPM"
-                  ? `App ID-${Date.now()}-${row["STUDENT_ID"]}`
+                  ?row["application id"]
                   : row[headerMap["application id"]],
               orderType: order,
             },
@@ -160,6 +171,7 @@ async function prepareWorkbook(
       })
     );
     for (let i = 0; i < result.length; i++) {
+      console.log(result[i]);
       if (result[i].status === "rejected") {
         console.log("error occurred");
         throw "error occurred";
@@ -198,7 +210,7 @@ function checkNonServicableCountry(country,countryList){
   let isInValid=false;
   for(let index=0;index<countryList.length;index++)
   {
-    if(countryList[index].name.toLowerCase().trim()===country.toLowerCase().trim())
+    if(countryList[index].name?.toLowerCase().trim()===country?.toLowerCase().trim())
     {
       isInValid=true;
       break;

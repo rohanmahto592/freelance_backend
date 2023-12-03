@@ -11,7 +11,7 @@ const { default: mongoose } = require("mongoose");
 async function getAllUsers(isVerified) {
   if (isVerified == "true") {
     try {
-      const response = await users.find({ isVerified: true });
+      const response = await users.find({ isVerified: true,isAdmin:false });
       return { success: true, message: response };
     } catch (err) {
       return {
@@ -41,7 +41,7 @@ async function verifySelectedUsers(userIds) {
       .exec();
     return { success: true, message: "Selected users verified successfully" };
   } catch (err) {
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "Failed to verified the user" };
   }
 }
 
@@ -50,7 +50,7 @@ async function deleteSelectedUser(userId) {
     await users.findByIdAndDelete(userId);
     return { success: true, message: "Selected user deleted successfully" };
   } catch (err) {
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "Failed to delete the user" };
   }
 }
 async function addItems(data) {
@@ -62,10 +62,10 @@ async function addItems(data) {
     }
     return {
       success: false,
-      message: "Something went wrong, Please try again",
+      message: "Failed to add item in the cart",
     };
   } catch (err) {
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "Failed to add item in the cart" };
   }
 }
 async function fetchItems() {
@@ -79,15 +79,14 @@ async function fetchItems() {
     }
     return {
       success: false,
-      message: "Something went wrong, Please try again",
+      message: "failed to fetch list items",
     };
   } catch (err) {
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "failed to fetch list items" };
   }
 }
 async function updatecartItem(data) {
   const { id, quantity, type = "update" } = data;
-  console.log(id, type);
   try {
     const item = await Stock.findOne({ _id: id });
     if (item) {
@@ -100,9 +99,9 @@ async function updatecartItem(data) {
       await item.save();
       return { success: true, message: "Stock updated successfully" };
     }
-    return { success: false, message: "please try again after sometime" };
+    return { success: false, message: "Failed to update cart ite" };
   } catch (err) {
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "Failed to update cart item" };
   }
 }
 async function getItemListNames() {
@@ -116,7 +115,7 @@ async function getItemListNames() {
       message: "Something went wrong, Please try again",
     };
   } catch (err) {
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "failed to fetch list items" };
   }
 }
 async function addStockItem(stockData) {
@@ -140,11 +139,11 @@ async function addStockItem(stockData) {
     }
     return {
       success: false,
-      message: "Something went wrong, Please try again",
+      message: "failed to add item in the stock",
     };
   } catch (err) {
     console.log(err);
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "failed to add item in the stock" };
   }
 }
 async function addColleges(collegeInfo) {
@@ -153,7 +152,7 @@ async function addColleges(collegeInfo) {
     await response.save();
     return { success: true, message: "college added successfully" };
   } catch (err) {
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "Failed to add college." };
   }
 }
 async function FetchColleges() {
@@ -161,7 +160,7 @@ async function FetchColleges() {
     const response = await College.find();
     return { success: true, message: response };
   } catch (err) {
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "Failed to fetch college lists." };
   }
 }
 
@@ -170,9 +169,9 @@ async function AddExcelHeader(header) {
     let { name, orderType } = header;
     const response = new ExcelHeader({ name: name.toLowerCase(), orderType });
     await response.save();
-    return { success: true, message: "header added successfully" };
+    return { success: true, message: "Header added successfully" };
   } catch (err) {
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "Failed to add excel header" };
   }
 }
 
@@ -181,7 +180,7 @@ async function deleteExcelHeader(id) {
     await ExcelHeader.findByIdAndDelete(id);
     return { success: true, message: "header deleted successfully" };
   } catch (err) {
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "failed to delete excel header" };
   }
 }
 
@@ -190,17 +189,17 @@ async function fetchExcelHeaders(orderType) {
     const response = await ExcelHeader.find({ orderType });
     return { success: true, message: response };
   } catch (err) {
-    return { success: false, message: "internal server error" };
+    return { success: false, message: "Failed to fetch excel headers,internal server error" };
   }
 }
 async function deleteColleById(id) {
   try {
     const response = await College.findByIdAndDelete(id);
-    return { success: true, message: "college deleted successfully" };
+    return { success: true, message: "College deleted successfully" };
   } catch (err) {
     return {
       success: false,
-      message: "failed to delete the college,try again after sometime",
+      message: "Failed to delete the college,try again after sometime",
     };
   }
 }
@@ -211,7 +210,7 @@ async function deleteItem(id) {
   } catch (err) {
     return {
       success: false,
-      message: "failed to delete the item,try again after sometime",
+      message: "Failed to delete the item,try again after sometime",
     };
   }
 }
@@ -219,11 +218,11 @@ async function addCountry(country) {
   try {
     const response = new NonServicableCountry({ name: country });
     await response.save();
-    return { success: true, message: "country added successfully" };
+    return { success: true, message: "Country added successfully" };
   } catch (err) {
     return {
       success: false,
-      message: "failed to add the country,try again after sometime",
+      message: "Failed to add the country,try again after sometime",
     };
   }
 }
@@ -234,7 +233,7 @@ async function getCountry() {
   } catch (err) {
     return {
       success: false,
-      message: "failed to fetch the country,try again after sometime",
+      message: "Failed to fetch the country,try again after sometime",
     };
   }
 }
@@ -247,7 +246,7 @@ async function addIndianPost(data) {
     return {
       success: false,
       message:
-        "failed to add international country consignment details,try again after sometime",
+        "Failed to add international country consignment details,try again after sometime",
     };
   }
 }
@@ -258,13 +257,13 @@ async function getExcelSheets(id) {
       .select("_id userRef name orderType createdAt");
     return { success: true, message: response };
   } catch (err) {
-    return { success: false, message: "failed to fetch excelsheet Details" };
+    return { success: false, message: "Failed to fetch excelsheet Details" };
   }
 }
 async function getDispatchedOrders(id) {
   try {
     const response = await Order.find({ excelSheetRef: id });
-    if (response?.length > 0) {
+    if (response.length > 0) {
       return { success: true, message: response, isOne: false };
     } else {
       //console.log(id)
@@ -285,7 +284,7 @@ async function getDispatchedOrders(id) {
     return {
       success: false,
       message:
-        "failed to add international country consignment details,try again after sometime",
+        "Failed to fetch order details,try again after sometime",
     };
   }
 }
@@ -296,15 +295,15 @@ async function getNonAdminUsers() {
       .select("_id firstName lastName email universityName userType");
     return { success: true, message: response };
   } catch (err) {
-    return { success: false, message: "failed to fetch users" };
+    return { success: false, message: "Failed to fetch user details" };
   }
 }
 async function deleteCountry(id) {
   try {
     await NonServicableCountry.findByIdAndDelete(id);
-    return { success: true, message: "deleted Successfully" };
+    return { success: true, message: "country deleted Successfully" };
   } catch (err) {
-    return { success: false, message: "failed to delete country" };
+    return { success: false, message: "Failed to delete country" };
   }
 }
 module.exports = {

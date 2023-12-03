@@ -12,10 +12,12 @@ const getUserDeliveryExcelRefById = async (id) => {
 };
 
 async function createOrder(orderData, session) {
+  console.log(orderData)
   try {
     const orderExist = await Order.findOne({
       applicationId: orderData.applicationId,
     });
+   // console.log(orderExist);
     if (!orderExist) {
       const newOrder = new Order(orderData);
       const order = await newOrder.save({ session });
