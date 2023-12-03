@@ -79,10 +79,10 @@ async function fetchItems() {
     }
     return {
       success: false,
-      message: "failed to fetch list items",
+      message: "Failed to fetch list items",
     };
   } catch (err) {
-    return { success: false, message: "failed to fetch list items" };
+    return { success: false, message: "Failed to fetch list items" };
   }
 }
 async function updatecartItem(data) {
@@ -115,7 +115,7 @@ async function getItemListNames() {
       message: "Something went wrong, Please try again",
     };
   } catch (err) {
-    return { success: false, message: "failed to fetch list items" };
+    return { success: false, message: "Failed to fetch list items" };
   }
 }
 async function addStockItem(stockData) {
@@ -139,18 +139,18 @@ async function addStockItem(stockData) {
     }
     return {
       success: false,
-      message: "failed to add item in the stock",
+      message: "Failed to add item in the stock",
     };
   } catch (err) {
     console.log(err);
-    return { success: false, message: "failed to add item in the stock" };
+    return { success: false, message: "Failed to add item in the stock" };
   }
 }
 async function addColleges(collegeInfo) {
   try {
     const response = new College(collegeInfo);
     await response.save();
-    return { success: true, message: "college added successfully" };
+    return { success: true, message: "College added successfully" };
   } catch (err) {
     return { success: false, message: "Failed to add college." };
   }
@@ -178,9 +178,9 @@ async function AddExcelHeader(header) {
 async function deleteExcelHeader(id) {
   try {
     await ExcelHeader.findByIdAndDelete(id);
-    return { success: true, message: "header deleted successfully" };
+    return { success: true, message: "Header deleted successfully" };
   } catch (err) {
-    return { success: false, message: "failed to delete excel header" };
+    return { success: false, message: "Failed to delete excel header" };
   }
 }
 
