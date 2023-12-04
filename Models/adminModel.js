@@ -152,7 +152,7 @@ async function addColleges(collegeInfo) {
     await response.save();
     return { success: true, message: "College added successfully" };
   } catch (err) {
-    return { success: false, message: "Failed to add college." };
+    return { success: false, message: "Failed to add college" };
   }
 }
 async function FetchColleges() {
@@ -301,9 +301,9 @@ async function getNonAdminUsers() {
 async function deleteCountry(id) {
   try {
     await NonServicableCountry.findByIdAndDelete(id);
-    return { success: true, message: "country deleted Successfully" };
+    return { success: true, message: "Country deleted Successfully" };
   } catch (err) {
-    return { success: false, message: "Failed to delete country" };
+    return { success: false, message: "Failed to delete the country" };
   }
 }
 module.exports = {
