@@ -12,7 +12,14 @@ const { generateCredentials } = require("../Utils/credentialHelper");
 const { createDelivery } = require("../Models/deliveryModel");
 const { updatecartItem } = require("../Models/adminModel");
 const { getMandatoryFields } = require("../Utils/getMandatoryFields");
-
+function removeLeftCharacters(string) {
+  const index = string.indexOf('$'); // Find the index of the dollar sign
+  if (index !== -1) {
+    return string.slice(index+1); // Return the substring starting from the dollar sign
+  } else {
+    return string; // If the dollar sign is not found, return the original string
+  }
+}
 async function processExcellSheet(req, res) {
   try {
     const excelfile = req.files[0];
@@ -63,9 +70,11 @@ async function processExcellSheet(req, res) {
 
       for (let i = 0; i < jsonItemKeys.length; i++) {
         let itemsStringified = jsonItems[jsonItemKeys[i]].join(",");
-        const regex = /\$[a-zA-Z0-9-]+/g;
-        const matches = itemsStringified.match(regex);
-        const values = matches.map((match) => match.slice(1));
+       
+        const items=itemsStringified.split(",");
+        const values= items.map((item)=>{
+          return removeLeftCharacters(item);
+        })
         itemsStringified = values.join(" , ");
         const itemVal = jsonItems[jsonItemKeys[i]];
         for (let j = 0; j < itemVal.length; j++) {
