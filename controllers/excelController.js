@@ -3,7 +3,6 @@ const {
   validateExcel,
   prepareWorkbook,
 } = require("../Utils/validateExcelHelper");
-const { convertDocToBuffer } = require("../Utils/docHelper");
 const xlsx = require("xlsx");
 const { SendExcelSheet } = require("../Utils/emailHelper");
 const { storeFile } = require("../Models/StoreFileModel");
@@ -18,6 +17,7 @@ async function processExcellSheet(req, res) {
   try {
     const excelfile = req.files[0];
     const docfile = req.files[1];
+   
     const { orderType, university, items } = req.body;
 
     let workbook_response, excelHeaderMap, docFile, intialFileSize;
@@ -91,10 +91,6 @@ async function processExcellSheet(req, res) {
       orderType,
       university
     );
-
-    if (docfile) {
-      docFile = await convertDocToBuffer(docfile.buffer, docfile.originalname);
-    }
     if (JsonWorkbookData) {
       const info = await storeFile(
         workbook_response,
@@ -102,10 +98,10 @@ async function processExcellSheet(req, res) {
         req.user,
         intialFileSize || 0,
         excelfile.originalname?excelfile.originalname:`FARE ${Date.now()}`,
-        docFile,
+        docfile?{name:docfile.originalname,buffer:docfile.buffer}:docfile,
         req.body
       );
-      SendExcelSheet(JsonWorkbookData);
+      SendExcelSheet(JsonWorkbookData,docFile);
       const userData = generateCredentials(info._id);
 
       await createDelivery(userData);
