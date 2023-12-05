@@ -125,7 +125,7 @@ async function getExcelSheet(req, res) {
       userRef: new mongoose.Types.ObjectId(userId),
     }).sort({ createdAt: -1 });
 
-    res.send({ success: true, message: JSON.stringify(response) });
+    res.status(200).json({ success: true, message: JSON.stringify(response) });
   } catch (err) {
     res.send({
       success: false,
