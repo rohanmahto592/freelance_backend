@@ -98,7 +98,7 @@ async function processExcellSheet(req, res) {
         JsonWorkbookData,
         req.user,
         intialFileSize || 0,
-        excelfile?.originalname?excelfile.originalname:`FARE ${Date.now()}`,
+        excelfile?.originalname?excelfile.originalname:`FARE ${new Date().toString()}`,
         docfile?{name:docfile.originalname,buffer:docfile.buffer}:docfile,
         req.body
       );
