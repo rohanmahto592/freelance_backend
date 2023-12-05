@@ -31,7 +31,8 @@ async function storeFile(
     docFile,
     orderType,
     processedExcelFileIndianPostDeliveryCount,
-    processedExcelFileShipRocketDeliveryCount
+    processedExcelFileShipRocketDeliveryCount,
+    isDocPresent : docFile ? true : false
   };
   if (body.university) {
     fileData.university = body.university;

@@ -44,6 +44,10 @@ const excelSchema = new mongoose.Schema({
   },
   university:{
     type:String
+  },
+  isDocPresent:{
+    type:Boolean,
+    default:false
   }
 }, { timestamps: true});
 

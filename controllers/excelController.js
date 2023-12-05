@@ -123,9 +123,9 @@ async function getExcelSheet(req, res) {
     const userId = req.user;
     const response = await File.find({
       userRef: new mongoose.Types.ObjectId(userId),
-    }).sort({ createdAt: -1 });
+    }).select("_id userRef initialFileSize processedFileSize intialExcelFileCount name processedExcelFileDispatchedCount processedExcelFileShipRocketDeliveryCount processedExcelFileIndianPostDeliveryCount orderType createdAt updatedAt isDocPresent").sort({ createdAt: -1 });
 
-    res.status(200).json({ success: true, message: JSON.stringify(response) });
+    res.status(200).json({ success: true, message:response });
   } catch (err) {
     res.send({
       success: false,
@@ -145,5 +145,20 @@ async function deleteExcelFile(req, res) {
     res.send({ success: false, message: "Internal Server Error" });
   }
 }
+async function getFile(req,res){
+  try {
+    const {_id,type}= req.body;
+    const response = await File.find({
+      _id: new mongoose.Types.ObjectId(_id),
+    }).select(`${type}  name createdAt`)
 
-module.exports = { processExcellSheet, getExcelSheet, deleteExcelFile };
+    res.status(200).json({ success: true, message: response });
+  } catch (err) {
+    res.send({
+      success: false,
+      message: "Not able to fetch file,please try again later",
+    });
+  }
+}
+
+module.exports = { processExcellSheet, getExcelSheet, deleteExcelFile,getFile };
