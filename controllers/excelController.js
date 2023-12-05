@@ -16,6 +16,7 @@ const { getMandatoryFields } = require("../Utils/getMandatoryFields");
 async function processExcellSheet(req, res) {
   try {
     const excelfile = req.files[0];
+    console.log(excelfile)
     const docfile = req.files[1];
    
     const { orderType, university, items } = req.body;
@@ -97,7 +98,7 @@ async function processExcellSheet(req, res) {
         JsonWorkbookData,
         req.user,
         intialFileSize || 0,
-        excelfile.originalname?excelfile.originalname:`FARE ${Date.now()}`,
+        excelfile?.originalname?excelfile.originalname:`FARE ${Date.now()}`,
         docfile?{name:docfile.originalname,buffer:docfile.buffer}:docfile,
         req.body
       );
