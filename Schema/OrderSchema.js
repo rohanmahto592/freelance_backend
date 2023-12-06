@@ -25,6 +25,9 @@ const orderSchema = new mongoose.Schema(
     courierCode: {
       type: String,
     },
+    email:{
+      type:String
+    }
 }, { timestamps: true});
 
 const Order = mongoose.model("Order", orderSchema);

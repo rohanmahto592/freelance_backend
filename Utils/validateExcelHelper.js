@@ -149,6 +149,7 @@ async function prepareWorkbook(
                   ?row["application id"]
                   : row[headerMap["application id"]],
               orderType: order,
+              email:row["email"]||row["Email"]
             },
             session
           );
