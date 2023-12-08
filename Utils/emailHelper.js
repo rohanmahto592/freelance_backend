@@ -1,11 +1,18 @@
 const XLSX = require("xlsx");
 const nodemailer = require("nodemailer");
 const { Json_ExcelFile } = require("./jsonToExcelFileHelper");
-function SendExcelSheet(JsonData) {
+const { getUserEmails } = require("../Models/adminModel");
+async function SendExcelSheet(JsonData) {
+  const adminResponse=await getUserEmails("Admin");
+  let senderEmails=[];
+   for(let i=0;i<adminResponse.length;i++)
+   {
+      senderEmails.push(adminResponse[i].email);
+   }
   const ExcelsheetFileName = `proceessedExcelSheet${new Date().toString()}.xlsx`;
   const message = {
     from: "rohanmahto592@gmail.com",
-    to: "rskumar0402@gmail.com",
+    to: senderEmails,
     subject: " Processed Excel file",
     attachments: [
       {
@@ -20,10 +27,16 @@ function SendExcelSheet(JsonData) {
   sendMail(message);
 }
 
-function sendGuestCredentials(email, password) {
+async function sendGuestCredentials(email, password) {
+  const deliveryResponse=await getUserEmails("Delivery")
+  let DeliveryEmails=[];
+  for(let i=0;i<deliveryResponse.length;i++)
+  {
+   DeliveryEmails.push(deliveryResponse[i].email);
+  }
   const message = {
     from: "rohanmahto592@gmail.com",
-    to: "rskumar0402@gmail.com",
+    to: DeliveryEmails,
     subject: "User Credentials",
     text: `Email: ${email}, password: ${password}`,
   };

@@ -22,13 +22,18 @@ const {
   getExcelSheetInfo,
   getOrders,
   fetchAllUsers,
-  deleteNonServicableCountries
- 
+  deleteNonServicableCountries,
+  userEmails,
+  addUserEmail,
+  deleteUserEmail
 } = require("../controllers/adminController.js");
 const router = express.Router();
 const multer = require("multer");
 const upload = multer();
 router.get("/admin/getusers", validateUser, allUsers);
+router.get("/admin/getUserEmails",validateUser,userEmails);
+router.post("/admin/addUserEmail",validateUser,addUserEmail);
+router.post("/admin/deleteUserEmail",validateUser,deleteUserEmail);
 router.post("/admin/verifyusers", validateUser, verifyUsers);
 router.post("/admin/user/delete", validateUser, deleteUser);
 router.post("/admin/additem", upload.single("file"), validateUser, addItem);

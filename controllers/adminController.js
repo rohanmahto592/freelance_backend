@@ -20,7 +20,10 @@ const {
  getExcelSheets,
  getDispatchedOrders,
  getNonAdminUsers,
- deleteCountry
+ deleteCountry,
+ getUserEmails,
+ AddUserEmail,
+ DeleteUserEmail
 } = require("../Models/adminModel");
 
 async function allUsers(req, res) {
@@ -135,6 +138,22 @@ async function deleteNonServicableCountries(req,res){
   const response=await deleteCountry(id);
   res.send(response)
 } 
+async function userEmails(req,res){
+  const {type}=req.query;
+  const response=await getUserEmails(type);
+  res.send(response);
+
+}
+async function addUserEmail(req,res){
+  const {userData}=req.body;
+  const response=await AddUserEmail(userData);
+  res.send(response)
+}
+async function deleteUserEmail(req,res){
+  const {id}=req.body;
+  const response=await DeleteUserEmail(id);
+  res.send(response);
+}
 module.exports = {
   deleteCollege,
   allUsers,
@@ -157,5 +176,8 @@ module.exports = {
   getExcelSheetInfo,
   getOrders,
   fetchAllUsers,
-  deleteNonServicableCountries
+  deleteNonServicableCountries,
+  userEmails,
+  addUserEmail,
+  deleteUserEmail
 };

@@ -8,6 +8,8 @@ const indianPostService = require("../Schema/indianPostSchema");
 const excelFile = require("../Schema/fileSchema");
 const Order = require("../Schema/OrderSchema");
 const { default: mongoose } = require("mongoose");
+const userEmail = require("../Schema/userEmailSchema");
+
 async function getAllUsers(isVerified) {
   if (isVerified == "true") {
     try {
@@ -306,6 +308,38 @@ async function deleteCountry(id) {
     return { success: false, message: "Failed to delete the country" };
   }
 }
+async function getUserEmails(userType){
+  try{
+    const response=await userEmail.find({userType});
+    return{success:true,message:response};
+  }
+  catch(err)
+  {
+    return {success:false,message:"Unable to fetch Email"}
+  }
+
+}
+async function AddUserEmail(data){
+  try {
+    const response = new userEmail(data);
+    await response.save();
+    return { success: true, message:"Email added successfully" };
+  } catch (err) {
+    return {
+      success: false,
+      message:
+        "Failed to add user email",
+    };
+  }
+}
+async function DeleteUserEmail(id){
+  try {
+    await userEmail.findByIdAndDelete(id);
+    return { success: true, message: "Email deleted Successfully" };
+  } catch (err) {
+    return { success: false, message: "Failed to delete the email" };
+  }
+}
 module.exports = {
   getAllUsers,
   verifySelectedUsers,
@@ -329,4 +363,7 @@ module.exports = {
   getDispatchedOrders,
   getNonAdminUsers,
   deleteCountry,
+  getUserEmails,
+  AddUserEmail,
+  DeleteUserEmail
 };
