@@ -127,7 +127,7 @@ async function prepareWorkbook(
             invalid.push(row);
             return;
           }
-          row["application id"] = row["STUDENT_ID"]? `App ID-${Date.now()}-${row["STUDENT_ID"]}`:`App ID-${Date.now()}${chance.string({length:12})}`
+          row["application id"] = row["student_id"]? `App ID-${Date.now()}-${row["student_id"]}`:`App ID-${Date.now()}${chance.string({length:12})}`
           validEmail = validateEmail(row[headerMap["email"]]);
         }
 
@@ -172,9 +172,7 @@ async function prepareWorkbook(
       })
     );
     for (let i = 0; i < result.length; i++) {
-      console.log(result[i]);
       if (result[i].status === "rejected") {
-        console.log("error occurred");
         throw "error occurred";
       }
     }
