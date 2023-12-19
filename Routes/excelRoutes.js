@@ -7,6 +7,6 @@ const router = express.Router();
 const upload = multer();
 router.get("/getExcelSheet",validateUser,getExcelSheet);
 router.post("/file/getFile",validateUser,getFile);
-router.post("/processExcel", upload.array('files', 2) ,rateLimiteMiddleWare, validateUser, processExcellSheet);
+router.post("/processExcel", upload.array('files', 2), validateUser, processExcellSheet);
 router.post("/processExcel/delete",validateUser, deleteExcelFile);
 module.exports = router;
