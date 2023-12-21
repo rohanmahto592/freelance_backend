@@ -5,7 +5,12 @@ const {
 } = require("../Utils/validateExcelHelper");
 const xlsx = require("xlsx");
 const { SendExcelSheet } = require("../Utils/emailHelper");
-const { storeFile } = require("../Models/StoreFileModel");
+const {
+  getFileStatus,
+  createFileTemplate,
+  updateFileData,
+  deleteUnProcessedFile,
+} = require("../Models/StoreFileModel");
 const File = require("../Schema/fileSchema");
 const mongoose = require("mongoose");
 const { generateCredentials } = require("../Utils/credentialHelper");
@@ -13,9 +18,9 @@ const { createDelivery } = require("../Models/deliveryModel");
 const { updatecartItem } = require("../Models/adminModel");
 const { getMandatoryFields } = require("../Utils/getMandatoryFields");
 function removeLeftCharacters(string) {
-  const index = string.indexOf('$'); // Find the index of the dollar sign
+  const index = string.indexOf("$"); // Find the index of the dollar sign
   if (index !== -1) {
-    return string.slice(index+1); // Return the substring starting from the dollar sign
+    return string.slice(index + 1); // Return the substring starting from the dollar sign
   } else {
     return string; // If the dollar sign is not found, return the original string
   }
@@ -23,9 +28,8 @@ function removeLeftCharacters(string) {
 async function processExcellSheet(req, res) {
   try {
     const excelfile = req.files[0];
-    console.log(excelfile)
     const docfile = req.files[1];
-   
+    const user = req.user;
     const { orderType, university, items } = req.body;
 
     let workbook_response, excelHeaderMap, docFile, intialFileSize;
@@ -37,10 +41,10 @@ async function processExcellSheet(req, res) {
         { defval: "" }
       );
       intialFileSize = calculateFileSize(excelfile.buffer);
-      if (intialFileSize > 50000000) {
+      if (intialFileSize > 20000000) {
         res.status(400).send({
           success: false,
-          message: "File size is more then 50 MB",
+          message: "File size is more then 20 MB",
         });
         return;
       }
@@ -70,11 +74,11 @@ async function processExcellSheet(req, res) {
 
       for (let i = 0; i < jsonItemKeys.length; i++) {
         let itemsStringified = jsonItems[jsonItemKeys[i]].join(",");
-       
-        const items=itemsStringified.split(",");
-        const values= items.map((item)=>{
+
+        const items = itemsStringified.split(",");
+        const values = items.map((item) => {
           return removeLeftCharacters(item);
-        })
+        });
         itemsStringified = values.join(" , ");
         const itemVal = jsonItems[jsonItemKeys[i]];
         for (let j = 0; j < itemVal.length; j++) {
@@ -95,6 +99,13 @@ async function processExcellSheet(req, res) {
         });
       }
     }
+    const newFile = await createFileTemplate();
+    res.send({
+      success: true,
+      isProcessed: false,
+      message: "Excel sheet is being processed",
+      id: newFile._id,
+    });
     const JsonWorkbookData = await prepareWorkbook(
       workbook_response,
       excelHeaderMap,
@@ -102,30 +113,60 @@ async function processExcellSheet(req, res) {
       university
     );
     if (JsonWorkbookData) {
-      const info = await storeFile(
+      await updateFileData(
         workbook_response,
         JsonWorkbookData,
-        req.user,
+        user,
         intialFileSize || 0,
-        excelfile?.originalname?excelfile.originalname:`FARE ${new Date().toString()}`,
-        docfile?{name:docfile.originalname,buffer:docfile.buffer}:docfile,
-        req.body
+        excelfile?.originalname
+          ? excelfile.originalname
+          : `FARE ${new Date().toString()}`,
+        docfile
+          ? { name: docfile.originalname, buffer: docfile.buffer }
+          : docfile,
+        { orderType, university },
+        newFile._id
       );
-      SendExcelSheet(JsonWorkbookData,docFile);
-      const userData = generateCredentials(info._id);
+      SendExcelSheet(JsonWorkbookData, docFile);
+      const userData = generateCredentials(newFile._id);
 
       await createDelivery(userData);
-      res.send({ success: true, message: "ExcelSheet Processed Successfully" });
-    } else {
-      res.send({
-        success: false,
-        message: "Something went wrong, Please try again later.",
-      });
     }
   } catch (err) {
     console.log(err);
-    res.send({ success: false, message: "ExcelSheet Couldn't be processed" });
   }
+}
+
+async function getProcessedSheetStatus(req, res) {
+  try {
+    const { id } = req.body;
+    const isProcessed = await getFileStatus(id);
+    if (isProcessed) {
+      res.send({
+        success: true,
+        isProcessed,
+        message: "File processed successfully",
+      });
+    } else {
+      res.send({
+        success: true,
+        isProcessed,
+        message: "File is being processed",
+      });
+    }
+  } catch {
+    res.send({
+      success: false,
+      isProcessed: false,
+      message: "Something went wrong, please try again later",
+    });
+  }
+}
+
+async function deleteUnProcessedExcelFile(req, res) {
+  const { id } = req.body;
+  await deleteUnProcessedFile(id);
+  res.send({ success: true, message: "file deleted successfully" });
 }
 
 async function getExcelSheet(req, res) {
@@ -133,9 +174,13 @@ async function getExcelSheet(req, res) {
     const userId = req.user;
     const response = await File.find({
       userRef: new mongoose.Types.ObjectId(userId),
-    }).select("_id userRef initialFileSize processedFileSize intialExcelFileCount name processedExcelFileDispatchedCount processedExcelFileShipRocketDeliveryCount processedExcelFileIndianPostDeliveryCount orderType createdAt updatedAt isDocPresent").sort({ createdAt: -1 });
+    })
+      .select(
+        "_id userRef initialFileSize processedFileSize intialExcelFileCount name processedExcelFileDispatchedCount processedExcelFileShipRocketDeliveryCount processedExcelFileIndianPostDeliveryCount orderType createdAt updatedAt isDocPresent"
+      )
+      .sort({ createdAt: -1 });
 
-    res.status(200).json({ success: true, message:response });
+    res.status(200).json({ success: true, message: response });
   } catch (err) {
     res.send({
       success: false,
@@ -155,12 +200,12 @@ async function deleteExcelFile(req, res) {
     res.send({ success: false, message: "Internal Server Error" });
   }
 }
-async function getFile(req,res){
+async function getFile(req, res) {
   try {
-    const {_id,type}= req.body;
+    const { _id, type } = req.body;
     const response = await File.find({
       _id: new mongoose.Types.ObjectId(_id),
-    }).select(`${type}  name createdAt`)
+    }).select(`${type}  name createdAt`);
 
     res.status(200).json({ success: true, message: response });
   } catch (err) {
@@ -171,4 +216,11 @@ async function getFile(req,res){
   }
 }
 
-module.exports = { processExcellSheet, getExcelSheet, deleteExcelFile,getFile };
+module.exports = {
+  processExcellSheet,
+  getExcelSheet,
+  deleteExcelFile,
+  getFile,
+  getProcessedSheetStatus,
+  deleteUnProcessedExcelFile,
+};

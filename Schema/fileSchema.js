@@ -4,11 +4,9 @@ const excelSchema = new mongoose.Schema(
   {
     initialExcelFile: {
       type: Buffer,
-      required: true,
     },
     processedExcelFile: {
       type: Buffer,
-      required: true,
     },
     docFile: {
       name: String,
@@ -17,7 +15,6 @@ const excelSchema = new mongoose.Schema(
     userRef: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     },
     initialFileSize: {
       type: String,
@@ -40,7 +37,6 @@ const excelSchema = new mongoose.Schema(
     processedExcelFileIndianPostDeliveryCount: {
       type: String,
     },
-
     orderType: {
       type: String,
     },
@@ -48,6 +44,10 @@ const excelSchema = new mongoose.Schema(
       type: String,
     },
     isDocPresent: {
+      type: Boolean,
+      default: false,
+    },
+    isProcessed: {
       type: Boolean,
       default: false,
     },

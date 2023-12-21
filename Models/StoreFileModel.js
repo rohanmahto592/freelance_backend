@@ -1,13 +1,14 @@
 const file = require("../Schema/fileSchema");
 
-async function storeFile(
+async function updateFileData(
   intialFileJosn,
   processedFileJson,
   userId,
   initialFileSize,
   name,
   docFile,
-  body
+  body,
+  id
 ) {
   const jsonString = JSON.stringify(processedFileJson);
   const buffer = Buffer.from(jsonString, "utf8");
@@ -40,9 +41,33 @@ async function storeFile(
     fileData.university = body.university;
   }
 
-  const newFile = new file(fileData);
+  await file.updateOne(
+    { _id: id },
+    { $set: { ...fileData, isProcessed: true } }
+  );
+}
+
+async function createFileTemplate() {
+  const newFile = new file();
   const info = await newFile.save();
   return info;
 }
 
-module.exports = { storeFile };
+async function getFileStatus(id) {
+  const fileData = await file.findById(id);
+  if (fileData.isProcessed) {
+    return true;
+  }
+  return false;
+}
+
+async function deleteUnProcessedFile(id) {
+  await file.deleteOne({ _id: id, isProcessed: false });
+}
+
+module.exports = {
+  updateFileData,
+  getFileStatus,
+  createFileTemplate,
+  deleteUnProcessedFile,
+};
