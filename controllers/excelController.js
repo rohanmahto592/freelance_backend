@@ -19,7 +19,6 @@ const { updatecartItem } = require("../Models/adminModel");
 const { getMandatoryFields } = require("../Utils/getMandatoryFields");
 const { getObjectUrl } = require("../Utils/awsS3Util");
 const axios = require("axios");
-const { decompress } = require("compress-json");
 
 function removeLeftCharacters(string) {
   const index = string.indexOf("$"); // Find the index of the dollar sign
@@ -218,15 +217,13 @@ async function getFile(req, res) {
     let file;
     if (path) {
       const url = await getObjectUrl(path);
-      console.log(url);
       file = await axios.get(url);
     }
 
-    const decompressedFile = decompress(file.data);
     res.status(200).json({
       success: true,
       message: {
-        [type]: decompressedFile,
+        [type]: file.data,
         name: response[0].name,
         createdAt: response[0].createdAt,
       },

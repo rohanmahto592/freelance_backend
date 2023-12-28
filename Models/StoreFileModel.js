@@ -2,7 +2,6 @@ const { default: axios } = require("axios");
 const file = require("../Schema/fileSchema");
 const { putObjectUrl } = require("../Utils/awsS3Util");
 const { Chance } = require("chance");
-const { compress } = require("compress-json");
 const chance = new Chance();
 
 async function updateFileData(
@@ -59,8 +58,8 @@ async function updateFileData(
   const initialFileUrl = await putObjectUrl(initialExcelFilePath);
   const processedFileUrl = await putObjectUrl(processedExcelFilePath);
 
-  await axios.put(initialFileUrl, compress(initialFileJson));
-  await axios.put(processedFileUrl, compress(processedFileJson));
+  await axios.put(initialFileUrl, initialFileJson);
+  await axios.put(processedFileUrl, processedFileJson);
 
   if (isDocPresent) {
     const docFileUrl = await putObjectUrl(
