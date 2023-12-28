@@ -17,6 +17,10 @@ const { generateCredentials } = require("../Utils/credentialHelper");
 const { createDelivery } = require("../Models/deliveryModel");
 const { updatecartItem } = require("../Models/adminModel");
 const { getMandatoryFields } = require("../Utils/getMandatoryFields");
+const { getObjectUrl } = require("../Utils/awsS3Util");
+const axios = require("axios");
+const { decompress } = require("compress-json");
+
 function removeLeftCharacters(string) {
   const index = string.indexOf("$"); // Find the index of the dollar sign
   if (index !== -1) {
@@ -113,7 +117,11 @@ async function processExcellSheet(req, res) {
       university
     );
     if (JsonWorkbookData) {
+      const excelFileName = excelfile.originalname
+        .split(".")[0]
+        .replaceAll(" ", "");
       await updateFileData(
+        excelFileName,
         workbook_response,
         JsonWorkbookData,
         user,
@@ -121,9 +129,7 @@ async function processExcellSheet(req, res) {
         excelfile?.originalname
           ? excelfile.originalname
           : `FARE ${new Date().toString()}`,
-        docfile
-          ? { name: docfile.originalname, buffer: docfile.buffer }
-          : docfile,
+        docfile,
         { orderType, university },
         newFile._id
       );
@@ -203,11 +209,28 @@ async function deleteExcelFile(req, res) {
 async function getFile(req, res) {
   try {
     const { _id, type } = req.body;
+
     const response = await File.find({
       _id: new mongoose.Types.ObjectId(_id),
     }).select(`${type}  name createdAt`);
+    const path = response && response.length && response[0][type];
 
-    res.status(200).json({ success: true, message: response });
+    let file;
+    if (path) {
+      const url = await getObjectUrl(path);
+      console.log(url);
+      file = await axios.get(url);
+    }
+
+    const decompressedFile = decompress(file.data);
+    res.status(200).json({
+      success: true,
+      message: {
+        [type]: decompressedFile,
+        name: response[0].name,
+        createdAt: response[0].createdAt,
+      },
+    });
   } catch (err) {
     res.send({
       success: false,

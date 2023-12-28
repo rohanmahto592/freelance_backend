@@ -3,14 +3,13 @@ const mongoose = require("mongoose");
 const excelSchema = new mongoose.Schema(
   {
     initialExcelFile: {
-      type: Buffer,
+      type: String,
     },
     processedExcelFile: {
-      type: Buffer,
+      type: String,
     },
     docFile: {
-      name: String,
-      buffer: Buffer,
+      type: String,
     },
     userRef: {
       type: mongoose.Schema.Types.ObjectId,

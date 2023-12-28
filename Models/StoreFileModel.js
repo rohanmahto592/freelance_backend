@@ -1,7 +1,13 @@
+const { default: axios } = require("axios");
 const file = require("../Schema/fileSchema");
+const { putObjectUrl } = require("../Utils/awsS3Util");
+const { Chance } = require("chance");
+const { compress } = require("compress-json");
+const chance = new Chance();
 
 async function updateFileData(
-  intialFileJosn,
+  excelFileName,
+  initialFileJson,
   processedFileJson,
   userId,
   initialFileSize,
@@ -15,30 +21,52 @@ async function updateFileData(
   initialFileSize = (initialFileSize / (1024 * 1024)).toPrecision(4) + " MB";
   let processedFileSize =
     (buffer.length / (1024 * 1024)).toPrecision(4) + " MB";
-  let intialExcelFileCount = intialFileJosn.length;
+  let intialExcelFileCount = initialFileJson.length;
   let processedExcelFileDispatchedCount = processedFileJson.dispatched.length;
   let processedExcelFileShipRocketDeliveryCount =
     processedFileJson.ShipRocket_Delivery.length;
   let processedExcelFileIndianPostDeliveryCount =
     processedFileJson.IndianPost_Delivery.length;
   const orderType = body.orderType;
+  const date = Date.now();
+  chance;
+  const initialExcelFilePath = `excel/initial/${excelFileName}-${date}${chance.string(
+    { length: 12 }
+  )}.json`;
+  const processedExcelFilePath = `excel/processed/${excelFileName}-${date}${chance.string(
+    { length: 12 }
+  )}.json`;
+  const isDocPresent = docFile ? true : false;
   const fileData = {
-    initialExcelFile: Buffer.from(JSON.stringify(intialFileJosn), "utf-8"),
-    processedExcelFile: Buffer.from(JSON.stringify(processedFileJson), "utf-8"),
+    initialExcelFile: initialExcelFilePath,
+    processedExcelFile: processedExcelFilePath,
     userRef: userId,
     name,
     initialFileSize,
     processedFileSize,
     intialExcelFileCount,
     processedExcelFileDispatchedCount,
-    docFile,
+    docFile: isDocPresent ? `docFile/${date}-${docFile.originalname}` : null,
     orderType,
     processedExcelFileIndianPostDeliveryCount,
     processedExcelFileShipRocketDeliveryCount,
-    isDocPresent: docFile ? true : false,
+    isDocPresent,
   };
   if (body.university) {
     fileData.university = body.university;
+  }
+
+  const initialFileUrl = await putObjectUrl(initialExcelFilePath);
+  const processedFileUrl = await putObjectUrl(processedExcelFilePath);
+
+  await axios.put(initialFileUrl, compress(initialFileJson));
+  await axios.put(processedFileUrl, compress(processedFileJson));
+
+  if (isDocPresent) {
+    const docFileUrl = await putObjectUrl(
+      `docFile/${date}-${docFile.originalname}`
+    );
+    await axios.put(docFileUrl, docFile);
   }
 
   await file.updateOne(

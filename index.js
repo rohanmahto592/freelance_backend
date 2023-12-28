@@ -16,6 +16,7 @@ const contactRoute = require("./Routes/contactUsRoutes");
 const adminRoute = require("./Routes/adminRoutes");
 const { connectDB } = require("./Db/db");
 const { UpdateOrderStatus } = require("./Utils/UpdateOrderModelHelper");
+
 app.use(express.json());
 app.use(cors(option));
 app.use("/api/v1", userCredentialRoute);
