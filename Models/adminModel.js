@@ -9,6 +9,7 @@ const excelFile = require("../Schema/fileSchema");
 const Order = require("../Schema/OrderSchema");
 const { default: mongoose } = require("mongoose");
 const userEmail = require("../Schema/userEmailSchema");
+const stock = require("../Schema/Stock");
 
 async function getAllUsers(isVerified) {
   if (isVerified == "true") {
@@ -340,6 +341,19 @@ async function DeleteUserEmail(id){
     return { success: false, message: "Failed to delete the email" };
   }
 }
+async function deleteStockByCollegeAddress(address)
+{
+  try{
+    await stock.deleteMany({university:address});
+    return {success:true,message:"deleted college and corresponding stock items"}
+
+  } catch(err)
+  {
+    return {success:false,message:"Failed to delete the corresponding stock items"}
+
+  }
+
+}
 module.exports = {
   getAllUsers,
   verifySelectedUsers,
@@ -365,5 +379,6 @@ module.exports = {
   deleteCountry,
   getUserEmails,
   AddUserEmail,
-  DeleteUserEmail
+  DeleteUserEmail,
+  deleteStockByCollegeAddress
 };

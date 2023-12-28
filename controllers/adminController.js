@@ -23,7 +23,8 @@ const {
  deleteCountry,
  getUserEmails,
  AddUserEmail,
- DeleteUserEmail
+ DeleteUserEmail,
+ deleteStockByCollegeAddress
 } = require("../Models/adminModel");
 
 async function allUsers(req, res) {
@@ -94,9 +95,22 @@ async function fetchExcelHeadersController(req, res) {
   res.send(response);
 }
 async function deleteCollege(req,res){
-  const {id}=req.query;
+  const {id,address}=req.query;
   const response=await deleteColleById(id);
-  res.send(response);
+  const response2=await deleteStockByCollegeAddress(address);
+  if(response.success && response2.success)
+  {
+    res.send(response2)
+  }
+  else if(!response.success)
+  {
+    res.send(response);
+  }
+  else
+  {
+    res.send({success:false,message:"college deleted, but failed to delete the corresponding stock items"})
+  }
+  
 }
 async function deleteCurrentItem(req,res){
   const {id}=req.query
