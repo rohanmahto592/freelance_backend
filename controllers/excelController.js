@@ -116,9 +116,7 @@ async function processExcellSheet(req, res) {
       university
     );
     if (JsonWorkbookData) {
-      const excelFileName = excelfile.originalname
-        .split(".")[0]
-        .replaceAll(" ", "");
+      let excelFileName = excelfile.originalname.split(".")[0];
       await updateFileData(
         excelFileName,
         workbook_response,
@@ -184,7 +182,7 @@ async function getExcelSheet(req, res) {
         "_id userRef initialFileSize processedFileSize intialExcelFileCount name processedExcelFileDispatchedCount processedExcelFileShipRocketDeliveryCount processedExcelFileIndianPostDeliveryCount orderType createdAt updatedAt isDocPresent"
       )
       .sort({ createdAt: -1 });
-
+      
     res.status(200).json({ success: true, message: response });
   } catch (err) {
     res.send({

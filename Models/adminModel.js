@@ -10,7 +10,8 @@ const Order = require("../Schema/OrderSchema");
 const { default: mongoose } = require("mongoose");
 const userEmail = require("../Schema/userEmailSchema");
 const stock = require("../Schema/Stock");
-
+const { getObjectUrl } = require("../Utils/awsS3Util");
+const axios=require('axios');
 async function getAllUsers(isVerified) {
   if (isVerified == "true") {
     try {
@@ -273,9 +274,9 @@ async function getDispatchedOrders(id) {
       const response = await excelFile
         .find({ _id: new mongoose.Types.ObjectId(id) })
         .select("processedExcelFile");
-      const { dispatched, ShipRocket_Delivery, IndianPost_Delivery } =
-        JSON.parse(response[0]?.processedExcelFile);
-      // console.log("shiprocket",ShipRocket_Delivery.length,IndianPost_Delivery.length)
+        const initialProcessedFile=await getObjectUrl(response[0].processedExcelFile);
+        const Data=await axios.get(initialProcessedFile);
+      const { dispatched, ShipRocket_Delivery, IndianPost_Delivery } =Data.data
       const orders = [
         ...dispatched,
         ...ShipRocket_Delivery,
