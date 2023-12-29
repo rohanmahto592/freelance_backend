@@ -2,46 +2,66 @@ const XLSX = require("xlsx");
 const nodemailer = require("nodemailer");
 const { Json_ExcelFile } = require("./jsonToExcelFileHelper");
 const { getUserEmails } = require("../Models/adminModel");
-async function SendExcelSheet(JsonData) {
-  const adminResponse=await getUserEmails("Admin");
+const { sendMailViaMailJet } = require("./mailJetHelper");
+async function SendExcelSheet(JsonData,docFile) {
+  let adminResponse=await getUserEmails("Admin");
+  adminResponse=adminResponse.message;
   let senderEmails=[];
    for(let i=0;i<adminResponse.length;i++)
    {
-      senderEmails.push(adminResponse[i].email);
+      senderEmails.push({Email:adminResponse[i].email,Name:adminResponse[i].name});
    }
   const ExcelsheetFileName = `proceessedExcelSheet${new Date().toString()}.xlsx`;
-  const message = {
-    from: "rohanmahto592@gmail.com",
-    to: senderEmails,
-    subject: " Processed Excel file",
-    attachments: [
-      {
-        filename: ExcelsheetFileName,
-        content: XLSX.write(Json_ExcelFile(JsonData), {
-          type: "buffer",
-          bookType: "xlsx",
-        }),
+  const workBook=await Json_ExcelFile(JsonData);
+  const buffer=XLSX.write(workBook,{type:'buffer',bookType:'xlsx'});
+  const DocFile=docFile && docFile.buffer.toString("base64");
+  const Messages= [
+    {
+      From: {
+        Email: "rohanmahto592@gmail.com",
+        Name: "MailJet Pilot",
       },
-    ],
-  };
-  sendMail(message);
+      To: senderEmails,
+      Subject: "Processed ExcelSheet",
+      HTMLPart:`<h2>Please find the attached Processed ExcelSheet.</h2>`,
+      Attachments:[
+        {
+          "ContentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "Filename": ExcelsheetFileName,
+          "Base64Content":buffer.toString('base64')
+         },
+        
+      ]
+    },
+  ]
+  if(docFile)
+  {
+    Messages[0].Attachments.push({"ContentType":docFile.mimetype,"Filename":docFile.originalname,"Base64Content":DocFile})
+  }
+  sendMailViaMailJet(Messages);
 }
 
 async function sendGuestCredentials(email, password) {
-  const deliveryResponse=await getUserEmails("Delivery")
+  let deliveryResponse=await getUserEmails("Delivery")
+  deliveryResponse=deliveryResponse.message;
   let DeliveryEmails=[];
   for(let i=0;i<deliveryResponse.length;i++)
   {
-   DeliveryEmails.push(deliveryResponse[i].email);
+   DeliveryEmails.push({Email:deliveryResponse[i].email,Name:deliveryResponse[i].name});
   }
-  const message = {
-    from: "rohanmahto592@gmail.com",
-    to: DeliveryEmails,
-    subject: "User Credentials",
-    text: `Email: ${email}, password: ${password}`,
-  };
+ const Messages= [
+    {
+      From: {
+        Email: "rohanmahto592@gmail.com",
+        Name: "MailJet Pilot",
+      },
+      To: DeliveryEmails,
+      Subject: "Creds for Uploading Order Sheet",
+      HTMLPart:`<h2>Please find the attached user credentials for uploading the Order placed Excelsheet.</h2><h3>Email: ${email}, password: ${password}`,
+    },
+  ]
+  sendMailViaMailJet(Messages);
 
-  sendMail(message);
 }
 
 function sendContactUsInfo({ name, email, subject, message }) {
@@ -52,26 +72,5 @@ function sendContactUsInfo({ name, email, subject, message }) {
     text: `Name : ${name}, Email : ${email}, Subject : ${subject}, Message : ${message}`,
   };
   sendMail(UserMessage);
-}
-
-function sendMail(message) {
-  // Create a transporter object
-  const transporter = nodemailer.createTransport({
-    host: "sandbox.smtp.mailtrap.io",
-    port: 2525,
-    auth: {
-      user: process.env.SMTP_AUTH_USERNAME,
-      pass: process.env.SMTP_AUTH_PASSWORD,
-    },
-  });
-
-  // Send the email
-  transporter.sendMail(message, (err, info) => {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log(info);
-    }
-  });
 }
 module.exports = { SendExcelSheet, sendGuestCredentials, sendContactUsInfo };

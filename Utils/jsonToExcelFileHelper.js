@@ -1,6 +1,6 @@
 const XLSX = require("xlsx");
 const rearrangeObjectKeysAlphabetically = require("./rearrangeExcelAlphabeticalOrder");
-function Json_ExcelFile(JsonData) {
+async function Json_ExcelFile(JsonData) {
   let {dispatched,invalid,non_servicable,ShipRocket_Delivery,IndianPost_Delivery,duplicates}=JsonData;
   dispatched=dispatched.map(obj => rearrangeObjectKeysAlphabetically(obj));
   invalid=invalid?.map(obj => rearrangeObjectKeysAlphabetically(obj));
@@ -22,7 +22,6 @@ function Json_ExcelFile(JsonData) {
   XLSX.utils.book_append_sheet(workbook, sheet4, "Duplicates");
   XLSX.utils.book_append_sheet(workbook, sheet5, "ShipRocket_Delivery");
   XLSX.utils.book_append_sheet(workbook, sheet6, "IndianPost_Delivery");
-  const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
   return workbook;
 }
 module.exports = { Json_ExcelFile };
