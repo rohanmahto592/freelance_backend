@@ -1,8 +1,7 @@
 const mailjet = require("node-mailjet");
-require("dotenv").config();
 const MailJet = mailjet.connect(
-  process.env.MJ_PRIVATE_KEY|| "a96bf1d27fb7320cc9659924c82507e7",
-  process.env.MJ_SECRET_KEY||"f6d440d400acbcbe6955933bfe8a798e"
+  process.env.MJ_PRIVATE_KEY,
+  process.env.MJ_SECRET_KEY
 );
 
 const sendMailViaMailJet = (Messages) => {
