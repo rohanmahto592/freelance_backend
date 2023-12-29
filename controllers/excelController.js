@@ -116,7 +116,7 @@ async function processExcellSheet(req, res) {
       university
     );
     if (JsonWorkbookData) {
-      let excelFileName = excelfile.originalname.split(".")[0];
+      let excelFileName = excelfile?.originalname?.split(".")[0]|| `FARE ${new Date().toString()}`;
       await updateFileData(
         excelFileName,
         workbook_response,
