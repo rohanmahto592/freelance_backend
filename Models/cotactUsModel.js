@@ -8,7 +8,7 @@ async function addContactUsInfo(data) {
   } catch (err) {
     return {
       success: false,
-      message: "failed to store contact us info,try again after sometime",
+      message: "failed to store the query,try again after sometime",
     };
   }
 }

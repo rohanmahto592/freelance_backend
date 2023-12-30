@@ -3,6 +3,7 @@ const { sendContactUsInfo } = require("../Utils/emailHelper");
 
 async function addContactUs(req, res) {
   const contactUsData = req.body;
+  console.log(contactUsData);
   const response = await addContactUsInfo(contactUsData);
   sendContactUsInfo(req.body);
   res.send(response);

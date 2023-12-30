@@ -3,14 +3,18 @@ const nodemailer = require("nodemailer");
 const { Json_ExcelFile } = require("./jsonToExcelFileHelper");
 const { getUserEmails } = require("../Models/adminModel");
 const { sendMailViaMailJet } = require("./mailJetHelper");
-async function SendExcelSheet(JsonData,docFile) {
-  let adminResponse=await getUserEmails("Admin");
-  adminResponse=adminResponse.message;
+async function getEmailLists(type){
+  let emailsResponse=await getUserEmails(type);
+  emailsResponse=emailsResponse.message;
   let senderEmails=[];
-   for(let i=0;i<adminResponse.length;i++)
+   for(let i=0;i<emailsResponse.length;i++)
    {
-      senderEmails.push({Email:adminResponse[i].email,Name:adminResponse[i].name});
+      senderEmails.push({Email:emailsResponse[i].email,Name:emailsResponse[i].name});
    }
+   return senderEmails;
+}
+async function SendExcelSheet(JsonData,docFile) {
+  const senderEmails=await getEmailLists("Admin");
   const ExcelsheetFileName = `proceessedExcelSheet${new Date().toString()}.xlsx`;
   const workBook=await Json_ExcelFile(JsonData);
   const buffer=XLSX.write(workBook,{type:'buffer',bookType:'xlsx'});
@@ -42,13 +46,7 @@ async function SendExcelSheet(JsonData,docFile) {
 }
 
 async function sendGuestCredentials(email, password) {
-  let deliveryResponse=await getUserEmails("Delivery")
-  deliveryResponse=deliveryResponse.message;
-  let DeliveryEmails=[];
-  for(let i=0;i<deliveryResponse.length;i++)
-  {
-   DeliveryEmails.push({Email:deliveryResponse[i].email,Name:deliveryResponse[i].name});
-  }
+const DeliveryEmails=await getEmailLists("Delivery");
  const Messages= [
     {
       From: {
@@ -57,20 +55,26 @@ async function sendGuestCredentials(email, password) {
       },
       To: DeliveryEmails,
       Subject: "Creds for Uploading Order Sheet",
-      HTMLPart:`<h2>Please find the attached user credentials for uploading the Order placed Excelsheet.</h2><h3>Email: ${email}, password: ${password}`,
+      HTMLPart:`<h2>Please find the attached user credentials for uploading the Order placed Excelsheet.</h2><h3>Email: ${email}, password: ${password}</h3>Click on the given link to directly navigate to the website:<a href="https://glimpsev1.vercel.app/login">glimpse</a>`,
     },
   ]
   sendMailViaMailJet(Messages);
 
 }
 
-function sendContactUsInfo({ name, email, subject, message }) {
-  const UserMessage = {
-    from: "rohanmahto592@gmail.com",
-    to: "rskumar0402@gmail.com",
-    subject: "Glimpse : User Query",
-    text: `Name : ${name}, Email : ${email}, Subject : ${subject}, Message : ${message}`,
-  };
-  sendMail(UserMessage);
+async function sendContactUsInfo({ name, email, subject, message }) {
+  const senderEmails=await getEmailLists("Admin");
+  const Messages= [
+    {
+      From: {
+        Email: email,
+        Name: name,
+      },
+      To: senderEmails,
+      Subject: subject,
+      TextPart:message
+    },
+  ]
+  sendMailViaMailJet(Messages);
 }
 module.exports = { SendExcelSheet, sendGuestCredentials, sendContactUsInfo };
