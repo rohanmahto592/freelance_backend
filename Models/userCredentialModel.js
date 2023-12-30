@@ -4,7 +4,6 @@ async function createUser(userData) {
   try {
     const newUser = new User(userData);
     const user = await newUser.save();
-
     if (user) {
       return { success: true, message: "User Registered Successfully" };
     }
