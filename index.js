@@ -6,8 +6,8 @@ const option = {
   exposedHeaders: "Authorization",
 };
 const cron = require("node-cron");
-// const fs = require("fs");
-// const https = require("https");
+const fs = require("fs");
+const https = require("https");
 const userCredentialRoute = require("./Routes/userCredentialRoutes");
 const excelRoute = require("./Routes/excelRoutes");
 const deliveryRoute = require("./Routes/deliveryRoutes");
@@ -38,13 +38,15 @@ cron.schedule(
   }
 );
 
-// const key = fs.readFileSync("private.key");
-// const cert = fs.readFileSync("certificate.crt");
+const key = fs.readFileSync("/home/ec2-user/freelance_backend/private.key");
+const cert = fs.readFileSync(
+  "/home/ec2-user/freelance_backend/certificate.crt"
+);
 
-// const creds = {
-//   key,
-//   cert,
-// };
+const creds = {
+  key,
+  cert,
+};
 
 app.get("/", (req, res) => {
   res.send("Glimpse backend");
@@ -56,5 +58,5 @@ app.listen(PORT, async () => {
   await connectDB();
 });
 
-// const httpsServer = https.createServer(creds, app);
-// httpsServer.listen(process.env.HTTPS_PORT);
+const httpsServer = https.createServer(creds, app);
+httpsServer.listen(process.env.HTTPS_PORT);
