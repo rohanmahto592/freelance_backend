@@ -37,6 +37,13 @@ cron.schedule(
   }
 );
 
+app.get(
+  "/.well-known/pki-validation/7515E5CA52A03A80B6DC7DC45144F8BD.txt",
+  (req, res) => {
+    res.sendFile("./7515E5CA52A03A80B6DC7DC45144F8BD.txt");
+  }
+);
+
 const PORT = process.env.PORT;
 app.listen(PORT, async () => {
   console.log(`listening on port ${PORT}`);
