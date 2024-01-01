@@ -44,6 +44,10 @@ app.get(
   }
 );
 
+app.get("/", (req, res) => {
+  res.send("Glimpse backend");
+});
+
 const PORT = process.env.PORT;
 app.listen(PORT, async () => {
   console.log(`listening on port ${PORT}`);
