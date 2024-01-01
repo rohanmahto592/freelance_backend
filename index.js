@@ -7,7 +7,7 @@ const option = {
 };
 const cron = require("node-cron");
 const fs = require("fs");
-const https = require("https");
+// const https = require("https");
 const userCredentialRoute = require("./Routes/userCredentialRoutes");
 const excelRoute = require("./Routes/excelRoutes");
 const deliveryRoute = require("./Routes/deliveryRoutes");
@@ -56,5 +56,5 @@ app.listen(PORT, async () => {
   await connectDB();
 });
 
-const httpsServer = https.createServer(creds, app);
-httpsServer.listen(process.env.HTTPS_PORT);
+// const httpsServer = https.createServer(creds, app);
+// httpsServer.listen(process.env.HTTPS_PORT);
