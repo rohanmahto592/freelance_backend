@@ -29,7 +29,7 @@ async function forgotPassword(req, res) {
     return;
   }
   const otp = generateOtp();
-  const encryptedOtp = passwordEncryption(otp.toString());
+  const encryptedOtp = passwordEncryption(otp.toString()+email);
   const response = await sendResetPasswordLink(email, otp);
   if (response.Status == "success") {
     res.send({
@@ -47,7 +47,7 @@ async function forgotPassword(req, res) {
 }
 async function resetPassword(req, res) {
   const { email, otp, token, password } = req.body;
-  const isValidToken = passwordValidation(otp.toString(), token);
+  const isValidToken = passwordValidation(otp.toString()+email, token);
   if (isValidToken) {
     const user = await findUser(email);
     if (!user.success) {
