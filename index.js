@@ -6,7 +6,8 @@ const option = {
   exposedHeaders: "Authorization",
 };
 const cron = require("node-cron");
-
+const fs = require("fs");
+const https = require("https");
 const userCredentialRoute = require("./Routes/userCredentialRoutes");
 const excelRoute = require("./Routes/excelRoutes");
 const deliveryRoute = require("./Routes/deliveryRoutes");
@@ -37,14 +38,13 @@ cron.schedule(
   }
 );
 
-app.get(
-  "/.well-known/pki-validation/4ACADDCC26DDAEFACD96E973C188DE24.txt",
-  (req, res) => {
-    res.sendFile(
-      "/home/ec2-user/freelance_backend/4ACADDCC26DDAEFACD96E973C188DE24.txt"
-    );
-  }
-);
+const key = fs.readFileSync("private.key");
+const cert = fs.readFileSync("certificate.crt");
+
+const creds = {
+  key,
+  cert,
+};
 
 app.get("/", (req, res) => {
   res.send("Glimpse backend");
@@ -55,3 +55,6 @@ app.listen(PORT, async () => {
   console.log(`listening on port ${PORT}`);
   await connectDB();
 });
+
+const httpsServer = https.createServer(creds, app);
+httpsServer.listen(process.env.HTTPS_PORT);
