@@ -38,9 +38,11 @@ cron.schedule(
 );
 
 app.get(
-  "/.well-known/pki-validation/7515E5CA52A03A80B6DC7DC45144F8BD.txt",
+  "/.well-known/pki-validation/4ACADDCC26DDAEFACD96E973C188DE24.txt",
   (req, res) => {
-    res.sendFile("./7515E5CA52A03A80B6DC7DC45144F8BD.txt");
+    res.sendFile(
+      "/home/ec2-user/freelance_backend/4ACADDCC26DDAEFACD96E973C188DE24.txt"
+    );
   }
 );
 
