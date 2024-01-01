@@ -41,10 +41,10 @@ cron.schedule(
 // const key = fs.readFileSync("private.key");
 // const cert = fs.readFileSync("certificate.crt");
 
-const creds = {
-  key,
-  cert,
-};
+// const creds = {
+//   key,
+//   cert,
+// };
 
 // app.get("/", (req, res) => {
 //   res.send("Glimpse backend");
