@@ -46,9 +46,9 @@ cron.schedule(
 //   cert,
 // };
 
-// app.get("/", (req, res) => {
-//   res.send("Glimpse backend");
-// });
+app.get("/", (req, res) => {
+  res.send("Glimpse backend");
+});
 
 const PORT = process.env.PORT;
 app.listen(PORT, async () => {
