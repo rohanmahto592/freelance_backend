@@ -15,9 +15,12 @@ function verify_Token(token)
    });
    
 }
-
+function generateOtp(){
+   return  Math.floor(100000 + Math.random() * 900000);
+}
 module.exports = {
     create_Token,
-    verify_Token
+    verify_Token,
+    generateOtp
 }
 

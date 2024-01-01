@@ -77,4 +77,25 @@ async function sendContactUsInfo({ name, email, subject, message }) {
   ]
   sendMailViaMailJet(Messages);
 }
-module.exports = { SendExcelSheet, sendGuestCredentials, sendContactUsInfo };
+async function sendResetPasswordLink(email,otp){
+  const Messages=[
+    {
+      From:{
+        Email:"rohanmahto592@gmail.com",
+        Name:"mailJet Pilot"
+      },
+      To:[
+        {
+          Email:email,
+          Name:email.split("@")[0],
+        }
+      ],
+      Subject: "Reset Password Otp!!",
+      HTMLPart:`<h2>Please find the attached Otp for password Reset.</h2><h3>OTP:${otp}</h3>`,
+
+    }
+  ]
+  const response= await sendMailViaMailJet(Messages);
+  return response;
+}
+module.exports = { SendExcelSheet, sendGuestCredentials, sendContactUsInfo,sendResetPasswordLink };
