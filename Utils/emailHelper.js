@@ -22,8 +22,8 @@ async function SendExcelSheet(JsonData,docFile,fileName) {
   const Messages= [
     {
       From: {
-        Email: "rohanmahto592@gmail.com",
-        Name: "MailJet Pilot",
+        Email: "contact@glimpse.net.in",
+        Name: "glimpse",
       },
       To: senderEmails,
       Subject: "Processed ExcelSheet",
@@ -53,8 +53,8 @@ const DeliveryEmails=await getEmailLists("Delivery");
  const Messages= [
     {
       From: {
-        Email: "rohanmahto592@gmail.com",
-        Name: "MailJet Pilot",
+        Email: "contact@glimpse.net.in",
+        Name: "glimpse",
       },
       To: DeliveryEmails,
       Subject: "Excelsheet and Creds for Uploading Order Sheet",
@@ -81,7 +81,7 @@ async function sendContactUsInfo({ name, email, subject, message }) {
         Email: email,
         Name: name,
       },
-      To: senderEmails,
+      To: [{Email:"contact@glimpse.net.in",Name:'Glimpse'}],
       Subject: subject,
       TextPart:message
     },
@@ -92,8 +92,8 @@ async function sendResetPasswordLink(email,otp){
   const Messages=[
     {
       From:{
-        Email:"rohanmahto592@gmail.com",
-        Name:"mailJet Pilot"
+        Email:"contact@glimpse.net.in",
+        Name:"Glimpse"
       },
       To:[
         {
