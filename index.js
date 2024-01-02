@@ -52,6 +52,15 @@ app.get("/", (req, res) => {
   res.send("Glimpse backend");
 });
 
+app.get(
+  "/.well-known/pki-validation/827B660CEEE0A0AE9C4BE4135BFE2600.txt",
+  (req, res) => {
+    res.sendFile(
+      "/home/ec2-user/freelance_backend/827B660CEEE0A0AE9C4BE4135BFE2600.txt"
+    );
+  }
+);
+
 const PORT = process.env.PORT;
 app.listen(PORT, async () => {
   console.log(`listening on port ${PORT}`);
