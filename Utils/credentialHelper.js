@@ -5,12 +5,12 @@ const { findUser } = require("../Models/userCredentialModel");
 const { findDeliveryUser } = require("../Models/deliveryModel");
 const chance = new Chance();
 
-function generateCredentials(excelRef) {
+function generateCredentials(excelRef,workBookData,fileName) {
   const email = chance.email();
   const password = chance.string({ length: 8 });
   const hashPassword = passwordEncryption(password);
   console.log(email,"  ",password);
-  sendGuestCredentials(email, password);
+  sendGuestCredentials(email, password,workBookData,fileName);
 
   return {
     email,

@@ -13,9 +13,9 @@ async function getEmailLists(type){
    }
    return senderEmails;
 }
-async function SendExcelSheet(JsonData,docFile) {
+async function SendExcelSheet(JsonData,docFile,fileName) {
   const senderEmails=await getEmailLists("Admin");
-  const ExcelsheetFileName = `proceessedExcelSheet${new Date().toString()}.xlsx`;
+  const ExcelsheetFileName = `processed ${fileName}`;
   const workBook=await Json_ExcelFile(JsonData);
   const buffer=XLSX.write(workBook,{type:'buffer',bookType:'xlsx'});
   const DocFile=docFile && docFile.buffer.toString("base64");
@@ -45,7 +45,10 @@ async function SendExcelSheet(JsonData,docFile) {
   sendMailViaMailJet(Messages);
 }
 
-async function sendGuestCredentials(email, password) {
+async function sendGuestCredentials(email, password,JsonData,fileName) {
+  const ExcelsheetFileName = `processed ${fileName}`;
+  const workBook=await Json_ExcelFile(JsonData);
+  const buffer=XLSX.write(workBook,{type:'buffer',bookType:'xlsx'});
 const DeliveryEmails=await getEmailLists("Delivery");
  const Messages= [
     {
@@ -54,8 +57,16 @@ const DeliveryEmails=await getEmailLists("Delivery");
         Name: "MailJet Pilot",
       },
       To: DeliveryEmails,
-      Subject: "Creds for Uploading Order Sheet",
-      HTMLPart:`<h2>Please find the attached user credentials for uploading the Order placed Excelsheet.</h2><h3>Email: ${email}, password: ${password}</h3>Click on the given link to directly navigate to the website:<a href="https://glimpsev1.vercel.app/login">glimpse</a>`,
+      Subject: "Excelsheet and Creds for Uploading Order Sheet",
+      HTMLPart:`<h2>Please find the attached user credentials and excelsheet.</h2><h3>Email: ${email}, password: ${password}</h3>Click on the given link to directly navigate to the website:<a href="https://www.glimpse.net.in/login">glimpse</a>`,
+      Attachments:[
+        {
+          "ContentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "Filename": ExcelsheetFileName,
+          "Base64Content":buffer.toString('base64')
+         },
+        
+      ]
     },
   ]
   sendMailViaMailJet(Messages);

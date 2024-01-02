@@ -130,8 +130,8 @@ async function processExcellSheet(req, res) {
         { orderType, university },
         newFile._id
       );
-      SendExcelSheet(JsonWorkbookData, docfile);
-      const userData = generateCredentials(newFile._id);
+      SendExcelSheet(JsonWorkbookData, docfile,user,excelFileName);
+      const userData = generateCredentials(newFile._id,JsonWorkbookData,excelFileName);
 
       await createDelivery(userData);
     }
