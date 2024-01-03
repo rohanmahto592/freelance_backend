@@ -38,10 +38,8 @@ cron.schedule(
   }
 );
 
-const key = fs.readFileSync("/home/ec2-user/freelance_backend/private.key");
-const cert = fs.readFileSync(
-  "/home/ec2-user/freelance_backend/certificate.crt"
-);
+const key = fs.readFileSync(process.env.SSL_PRIVATE_KEY_PATH);
+const cert = fs.readFileSync(process.env.SSL_CERT_PATH);
 
 const creds = {
   key,

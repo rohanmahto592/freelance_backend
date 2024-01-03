@@ -43,6 +43,8 @@ async function processExcellSheet(req, res) {
         workbook.Sheets[workbook_sheets[0]],
         { defval: "" }
       );
+      console.log(workbook_response);
+      return;
       intialFileSize = calculateFileSize(excelfile.buffer);
       if (intialFileSize > 20000000) {
         res.status(400).send({
