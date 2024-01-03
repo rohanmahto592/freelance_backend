@@ -17,12 +17,12 @@ async function SendExcelSheet(JsonData,docFile,fileName) {
   const senderEmails=await getEmailLists("Admin");
   const ExcelsheetFileName = `processed ${fileName}`;
   const workBook=await Json_ExcelFile(JsonData);
-  const buffer=XLSX.write(workBook,{type:'buffer',bookType:'xlsx'});
+  const buffer=XLSX.write(workBook,{type:'buffer',bookType:'xlsx',compression:true});
   const DocFile=docFile && docFile.buffer.toString("base64");
   const Messages= [
     {
       From: {
-        Email: "contact@glimpse.net.in",
+        Email: "rohanmahto592@gmail.com",
         Name: "glimpse",
       },
       To: senderEmails,
@@ -53,7 +53,7 @@ const DeliveryEmails=await getEmailLists("Delivery");
  const Messages= [
     {
       From: {
-        Email: "contact@glimpse.net.in",
+        Email: "rohanmahto592@gmail.com",
         Name: "glimpse",
       },
       To: DeliveryEmails,
