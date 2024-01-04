@@ -5,12 +5,12 @@ const { findUser } = require("../Models/userCredentialModel");
 const { findDeliveryUser } = require("../Models/deliveryModel");
 const chance = new Chance();
 
-function generateCredentials(excelRef,workBookData,fileName) {
+function generateCredentials(excelRef, workBookData, fileName) {
   const email = chance.email();
   const password = chance.string({ length: 8 });
   const hashPassword = passwordEncryption(password);
-  console.log(email,"  ",password);
-  sendGuestCredentials(email, password,workBookData,fileName);
+  console.log(email, "  ", password);
+  sendGuestCredentials(email, password, workBookData, fileName);
 
   return {
     email,
@@ -19,17 +19,20 @@ function generateCredentials(excelRef,workBookData,fileName) {
     excelRef,
   };
 }
-async function findClientDetails(email)
-{
-    const response = await findUser(email);
-    return response;
-  }
-
-    
-async function findDeliveryDetails(email)
-{
-  const response = await findDeliveryUser(email);
+async function findClientDetails(email) {
+  const emailInLower = email.toLowerCase();
+  const response = await findUser(emailInLower);
   return response;
 }
 
-module.exports = { generateCredentials,findClientDetails,findDeliveryDetails };
+async function findDeliveryDetails(email) {
+  const emailInLower = email.toLowerCase();
+  const response = await findDeliveryUser(emailInLower);
+  return response;
+}
+
+module.exports = {
+  generateCredentials,
+  findClientDetails,
+  findDeliveryDetails,
+};

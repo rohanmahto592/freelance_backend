@@ -18,7 +18,8 @@ async function addContactUs(req, res) {
   res.send(response);
 }
 async function forgotPassword(req, res) {
-  const { email } = req.body;
+  let { email } = req.body;
+  email = email.toLowerCase();
   const isUserPresent = await User.findOne({ email });
   if (!isUserPresent) {
     res.send({
@@ -29,7 +30,7 @@ async function forgotPassword(req, res) {
     return;
   }
   const otp = generateOtp();
-  const encryptedOtp = passwordEncryption(otp.toString()+email);
+  const encryptedOtp = passwordEncryption(otp.toString() + email);
   const response = await sendResetPasswordLink(email, otp);
   if (response.Status == "success") {
     res.send({
@@ -46,8 +47,9 @@ async function forgotPassword(req, res) {
   }
 }
 async function resetPassword(req, res) {
-  const { email, otp, token, password } = req.body;
-  const isValidToken = passwordValidation(otp.toString()+email, token);
+  let { email, otp, token, password } = req.body;
+  email = email.toLowerCase();
+  const isValidToken = passwordValidation(otp.toString() + email, token);
   if (isValidToken) {
     const user = await findUser(email);
     if (!user.success) {

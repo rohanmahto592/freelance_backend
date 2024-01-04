@@ -26,7 +26,7 @@ async function register(req, res) {
     dob,
     universityName,
     userType,
-    email,
+    email: email?.toLowerCase(),
     password: hashPassword,
   };
   const response = await createUser(userData);
@@ -35,7 +35,8 @@ async function register(req, res) {
 
 async function login(req, res) {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+    email = email?.toLowerCase();
     const userResponse = await findClientDetails(email);
     const deliveryUserResponse = await findDeliveryDetails(email);
     if (!userResponse.success && !deliveryUserResponse.success) {

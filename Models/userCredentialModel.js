@@ -2,6 +2,11 @@ const User = require("../Schema/credentialSchema");
 
 async function createUser(userData) {
   try {
+    const { email } = userData;
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return { success: false, message: "User already exists" };
+    }
     const newUser = new User(userData);
     const user = await newUser.save();
     if (user) {
@@ -12,21 +17,23 @@ async function createUser(userData) {
       message: "Something went wrong, Please try again",
     };
   } catch (err) {
-    return { success: false, message:"internal server error,try again after sometime" };
+    return {
+      success: false,
+      message: "internal server error,try again after sometime",
+    };
   }
 }
 
 async function findUser(email) {
-  try{
-    const user = await User.findOne({ email });
-    if(!user){
+  try {
+    const user = await User.findOne({ email: email?.toLowerCase() });
+    if (!user) {
       return { success: false, message: "User Not Found" };
     }
     return { success: true, user };
-  } catch(err) {
+  } catch (err) {
     return { success: false, message: err.message };
   }
 }
 
-
-module.exports = {createUser, findUser};
+module.exports = { createUser, findUser };

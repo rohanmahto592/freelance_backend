@@ -17,15 +17,15 @@ async function createDelivery(userData) {
   }
 }
 async function findDeliveryUser(email) {
-  try{
-    const user = await Delivery.findOne({ email });
-    if(!user){
+  try {
+    const user = await Delivery.findOne({ email: email.toLowerCase() });
+    if (!user) {
       return { success: false, message: "User Not Found" };
     }
     return { success: true, user };
-  } catch(err) {
+  } catch (err) {
     return { success: false, message: err.message };
   }
 }
 
-module.exports = { createDelivery,findDeliveryUser };
+module.exports = { createDelivery, findDeliveryUser };

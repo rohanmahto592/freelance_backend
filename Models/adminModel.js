@@ -11,11 +11,11 @@ const { default: mongoose } = require("mongoose");
 const userEmail = require("../Schema/userEmailSchema");
 const stock = require("../Schema/Stock");
 const { getObjectUrl } = require("../Utils/awsS3Util");
-const axios=require('axios');
+const axios = require("axios");
 async function getAllUsers(isVerified) {
   if (isVerified == "true") {
     try {
-      const response = await users.find({ isVerified: true,isAdmin:false });
+      const response = await users.find({ isVerified: true, isAdmin: false });
       return { success: true, message: response };
     } catch (err) {
       return {
@@ -46,6 +46,15 @@ async function verifySelectedUsers(userIds) {
     return { success: true, message: "Selected users verified successfully" };
   } catch (err) {
     return { success: false, message: "Failed to verified the user" };
+  }
+}
+
+async function deleteRejectedUsers(userIds) {
+  try {
+    await users.deleteMany({ _id: { $in: userIds } }).exec();
+    return { success: true, message: "Selected users deleted successfully" };
+  } catch (err) {
+    return { success: false, message: "Failed to delete the user" };
   }
 }
 
@@ -193,7 +202,10 @@ async function fetchExcelHeaders(orderType) {
     const response = await ExcelHeader.find({ orderType });
     return { success: true, message: response };
   } catch (err) {
-    return { success: false, message: "Failed to fetch excel headers,internal server error" };
+    return {
+      success: false,
+      message: "Failed to fetch excel headers,internal server error",
+    };
   }
 }
 async function deleteColleById(id) {
@@ -274,9 +286,12 @@ async function getDispatchedOrders(id) {
       const response = await excelFile
         .find({ _id: new mongoose.Types.ObjectId(id) })
         .select("processedExcelFile");
-        const initialProcessedFile=await getObjectUrl(response[0].processedExcelFile);
-        const Data=await axios.get(initialProcessedFile);
-      const { dispatched, ShipRocket_Delivery, IndianPost_Delivery } =Data.data
+      const initialProcessedFile = await getObjectUrl(
+        response[0].processedExcelFile
+      );
+      const Data = await axios.get(initialProcessedFile);
+      const { dispatched, ShipRocket_Delivery, IndianPost_Delivery } =
+        Data.data;
       const orders = [
         ...dispatched,
         ...ShipRocket_Delivery,
@@ -287,8 +302,7 @@ async function getDispatchedOrders(id) {
   } catch (err) {
     return {
       success: false,
-      message:
-        "Failed to fetch order details,try again after sometime",
+      message: "Failed to fetch order details,try again after sometime",
     };
   }
 }
@@ -310,31 +324,27 @@ async function deleteCountry(id) {
     return { success: false, message: "Failed to delete the country" };
   }
 }
-async function getUserEmails(userType){
-  try{
-    const response=await userEmail.find({userType});
-    return{success:true,message:response};
+async function getUserEmails(userType) {
+  try {
+    const response = await userEmail.find({ userType });
+    return { success: true, message: response };
+  } catch (err) {
+    return { success: false, message: "Unable to fetch Email" };
   }
-  catch(err)
-  {
-    return {success:false,message:"Unable to fetch Email"}
-  }
-
 }
-async function AddUserEmail(data){
+async function AddUserEmail(data) {
   try {
     const response = new userEmail(data);
     await response.save();
-    return { success: true, message:"Email added successfully" };
+    return { success: true, message: "Email added successfully" };
   } catch (err) {
     return {
       success: false,
-      message:
-        "Failed to add user email",
+      message: "Failed to add user email",
     };
   }
 }
-async function DeleteUserEmail(id){
+async function DeleteUserEmail(id) {
   try {
     await userEmail.findByIdAndDelete(id);
     return { success: true, message: "Email deleted Successfully" };
@@ -342,18 +352,19 @@ async function DeleteUserEmail(id){
     return { success: false, message: "Failed to delete the email" };
   }
 }
-async function deleteStockByCollegeAddress(address)
-{
-  try{
-    await stock.deleteMany({university:address});
-    return {success:true,message:"deleted college and corresponding stock items"}
-
-  } catch(err)
-  {
-    return {success:false,message:"Failed to delete the corresponding stock items"}
-
+async function deleteStockByCollegeAddress(address) {
+  try {
+    await stock.deleteMany({ university: address });
+    return {
+      success: true,
+      message: "deleted college and corresponding stock items",
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: "Failed to delete the corresponding stock items",
+    };
   }
-
 }
 module.exports = {
   getAllUsers,
@@ -381,5 +392,6 @@ module.exports = {
   getUserEmails,
   AddUserEmail,
   DeleteUserEmail,
-  deleteStockByCollegeAddress
+  deleteStockByCollegeAddress,
+  deleteRejectedUsers,
 };
