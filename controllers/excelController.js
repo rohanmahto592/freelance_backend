@@ -51,7 +51,7 @@ async function processExcellSheet(req, res) {
         });
         return;
       }
-      const { isValid, headerMap } = await validateExcel(
+      const { isValid, headerMap,missingFields } = await validateExcel(
         workbook_response[0],
         orderType
       );
@@ -66,6 +66,7 @@ async function processExcellSheet(req, res) {
             "All the required headers are not present,check and reformat your excel file",
           orderType,
           Headers,
+          missingFields
         });
         return;
       }
