@@ -19,6 +19,7 @@ const { updatecartItem } = require("../Models/adminModel");
 const { getMandatoryFields } = require("../Utils/getMandatoryFields");
 const { getObjectUrl } = require("../Utils/awsS3Util");
 const axios = require("axios");
+const { findUser } = require("../Models/userCredentialModel");
 
 function removeLeftCharacters(string) {
   const index = string.indexOf("$"); // Find the index of the dollar sign
@@ -33,8 +34,7 @@ async function processExcellSheet(req, res) {
     const excelfile = req.files[0];
     const docfile = req.files[1];
     const user = req.user;
-    const { orderType, university, items } = req.body;
-
+    const { orderType, university, items,address } = req.body;
     let workbook_response, excelHeaderMap, docFile, intialFileSize;
     if (orderType !== "FARE") {
       const workbook = xlsx.read(excelfile.buffer, { type: "buffer" });
@@ -92,10 +92,11 @@ async function processExcellSheet(req, res) {
             type: "subtract",
           });
         }
+        const userData = await findUser(req.userEmail);
 
         workbook_response.push({
           "application id": `App ID-${Date.now()}-${i}`,
-          "street address 1": jsonItemKeys[i],
+          "street address 1": userData.user.userType === 'SELF' ? address : jsonItemKeys[i],
           orderType: orderType,
           items: itemsStringified,
           "awb no": "",

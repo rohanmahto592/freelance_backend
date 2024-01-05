@@ -13,7 +13,9 @@ function validateUser(req, res, next) {
       message: "Unauthorized user,please login.",
     });
   }
+  console.log(response)
   req.user = response?._id;
+  req.userEmail = response?.email;
   next();
 }
 
