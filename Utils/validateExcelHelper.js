@@ -171,6 +171,10 @@ async function prepareWorkbook(
             if (newOrder.isDuplicate) {
               duplicates.push(row);
               return;
+            } else if (newOrder.isInvalid) {
+              invalid.push(row);
+              row["error status"] = newOrder.message;
+              return;
             }
           }
         }

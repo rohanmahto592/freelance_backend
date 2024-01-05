@@ -12,12 +12,19 @@ const getUserDeliveryExcelRefById = async (id) => {
 };
 
 async function createOrder(orderData, session) {
-  console.log(orderData)
+  console.log(orderData);
   try {
     const orderExist = await Order.findOne({
       applicationId: orderData.applicationId,
     });
     if (!orderExist) {
+      if (orderData.orderType === "DEPOSIT") {
+        return {
+          success: false,
+          isInvalid: true,
+          message: "Admission status of ADMIT is not present.",
+        };
+      }
       const newOrder = new Order(orderData);
       const order = await newOrder.save({ session });
 
