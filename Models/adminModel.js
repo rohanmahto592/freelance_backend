@@ -270,7 +270,7 @@ async function getExcelSheets(id) {
   try {
     const response = await excelFile
       .find({ userRef: new mongoose.Types.ObjectId(id) })
-      .select("_id userRef name orderType createdAt");
+      .select("_id userRef name orderType createdAt").sort({ createdAt: -1 });
     return { success: true, message: response };
   } catch (err) {
     return { success: false, message: "Failed to fetch excelsheet Details" };
