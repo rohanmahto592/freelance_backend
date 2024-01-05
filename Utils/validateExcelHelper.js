@@ -22,28 +22,38 @@ function checkMandatoryFields(headerArray, mandatoryFields) {
   const regexFields = mandatoryFields.map(
     (field) => new RegExp(field.toLowerCase(), "i")
   );
-  return regexFields.every((regex) =>
-    headerArray.some((header) => regex.test(header.toLowerCase()))
-  );
+
+  const missingFields = mandatoryFields.filter((field, index) => {
+    return !headerArray.some((header) => regexFields[index].test(header.toLowerCase()));
+  });
+
+  if(missingFields.length===0)
+  {
+    return {isMandatoryFieldPresent:true,missingFields:[]};
+  }
+  return {isMandatoryFieldPresent:false,missingFields:missingFields};
 }
 function mapMandatoryFields(headerArray, mandatoryFields) {
   const resultMap = {};
-  mandatoryFields.forEach((mandatoryField) => {
-    const regex = new RegExp(mandatoryField, "i");
+  for(let index in mandatoryFields)
+  {
+    const regex = new RegExp(mandatoryFields[index], "i");
     const header = headerArray.find((header) => regex.test(header));
     if (header) {
-      resultMap[mandatoryField] = header;
+      resultMap[mandatoryFields[index]] = header;
     }
-  });
+
+  }
+
   return resultMap;
 }
 async function validateExcel(data, orderType) {
   let mandatoryFields = await getMandatoryFields(orderType);
   mandatoryFields = mandatoryFields.map((headers) => headers.name);
   let headers = Object.keys(data);
-  let isValid = checkMandatoryFields(headers, mandatoryFields);
+  let {isMandatoryFieldPresent,missingFields} = checkMandatoryFields(headers, mandatoryFields);
   const headerMap = mapMandatoryFields(headers, mandatoryFields);
-  return { isValid, headerMap };
+  return { isValid:isMandatoryFieldPresent, headerMap:headerMap,missingFields:missingFields };
 }
 
 function formatPhoneNumber(number) {

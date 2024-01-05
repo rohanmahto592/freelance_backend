@@ -18,7 +18,6 @@ async function register(req, res) {
     email,
     password,
   } = req.body;
-  console.log(req.body);
   const hashPassword = passwordEncryption(password);
   const userData = {
     firstName,
