@@ -53,7 +53,6 @@ async function validateExcel(data, orderType) {
   let headers = Object.keys(data);
   let {isMandatoryFieldPresent,missingFields} = checkMandatoryFields(headers, mandatoryFields);
   const headerMap = mapMandatoryFields(headers, mandatoryFields);
-  console.log(isMandatoryFieldPresent,headerMap,missingFields);
   return { isValid:isMandatoryFieldPresent, headerMap:headerMap,missingFields:missingFields };
 }
 
