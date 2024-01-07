@@ -118,9 +118,19 @@ async function prepareWorkbook(
             row[headerMap["phone number"]],
             row[headerMap["country"]]
           );
-
+          if(!validateResponse.success)
+          {
+            row["error status"]=validateResponse.message;
+            invalid.push(row);
+            return;
+          }
           validEmail = validateEmail(row[headerMap["email"]]);
-
+          if(!validEmail)
+          {
+            row["error status"]="Not a valid email";
+            invalid.push(row);
+            return;
+          }
           checkValidAddress = await validateAddress(
             row[headerMap["country"]],
             row[headerMap["postal code"]],
@@ -133,6 +143,10 @@ async function prepareWorkbook(
 
           row["state"] = checkValidAddress.state;
         } else if (orderType === "DPM") {
+          row["application id"] = row["student_id"]
+          ? `App ID-${Date.now()}-${row["student_id"]}`
+          : `App ID-${Date.now()}${chance.string({ length: 12 })}`;
+
           const isInValidCountry = checkNonServicableCountry(
             row[headerMap["country"]],
             countryList
@@ -143,15 +157,43 @@ async function prepareWorkbook(
             invalid.push(row);
             return;
           }
-          row["application id"] = row["student_id"]
-            ? `App ID-${Date.now()}-${row["student_id"]}`
-            : `App ID-${Date.now()}${chance.string({ length: 12 })}`;
           validEmail = validateEmail(row[headerMap["email"]]);
+          if(!validEmail)
+          {
+            row["error status"]="Not a valid email";
+            invalid.push(row);
+            return;
+          }
+
+          if (row[headerMap["country"]]?.toLowerCase() !== "india") {
+            let address = { isValid: false, state: "Z" };
+            address = await findAddressHepler(
+              row[headerMap["country"]],
+              row[headerMap["postal code"]],
+              row[headerMap["city"]],
+              row[headerMap["street address 1"]],
+              row[headerMap["street address 2"]],
+              row,
+              headerMap,
+              address
+            );
+            non_servicable.push(row);
+            return;
+          }
+          checkValidAddress = await validateAddress(
+            row[headerMap["country"]],
+            row[headerMap["postal code"]],
+            row[headerMap["city"]],
+            row[headerMap["street address 1"]],
+            row[headerMap["street address 2"]],
+            row,
+            headerMap
+          );
         }
 
         if (
           orderType === "FARE" ||
-          (orderType === "DPM" && validEmail) ||
+          (orderType === "DPM" && validEmail  && checkValidAddress.isValid) ||
           (validEmail && validateResponse.success && checkValidAddress.isValid)
         ) {
           const order =
@@ -188,7 +230,7 @@ async function prepareWorkbook(
             }
           }
         }
-        row["error status"] = validateResponse?.message;
+        row["error status"] = "Failed to verify the address.";
         invalid.push(row);
         return;
       })

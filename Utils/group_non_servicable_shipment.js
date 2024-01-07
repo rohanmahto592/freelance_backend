@@ -37,7 +37,7 @@ function validatePhoneNumber(phoneNumber, Country) {
       }
     } catch (error) {
      
-      resolve({success:false,message:error});
+      resolve({success:false,message:'The string supplied did not seem to be a phone number'});
     }
   });
 }

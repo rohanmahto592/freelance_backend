@@ -12,7 +12,7 @@ const getUserDeliveryExcelRefById = async (id) => {
 };
 
 async function createOrder(orderData, session) {
-  console.log(orderData);
+   console.log(orderData);
   try {
     const orderExist = await Order.findOne({
       applicationId: orderData.applicationId,
@@ -46,7 +46,7 @@ async function createOrder(orderData, session) {
         };
       }
       orderExist.orderType = orderData.orderType;
-      const updatedOrder = await orderExist.save();
+      const updatedOrder = await orderExist.save({ session });
       // console.log(updatedOrder);
       if (updatedOrder) {
         return { success: true, message: "Order added successfully" };
